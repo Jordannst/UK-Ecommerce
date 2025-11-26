@@ -12,6 +12,7 @@ import cartRoutes from './routes/cart.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import userRoutes from './routes/user.routes.js';
+import chatbotRoutes from './routes/chatbot.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 
 // Import middleware
@@ -27,24 +28,35 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-// CORS - Allow multiple frontend URLs (flexible)
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:3001', // Fallback if frontend uses different port
-].filter(Boolean);
+// Allow multiple origins for flexibility (development)
+// Always include common development ports, plus any from env
+const defaultOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'];
+const envOrigins = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : [];
+// Combine and remove duplicates
+const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])].filter(Boolean);
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      // Log for debugging
+      console.log(`⚠️ CORS blocked origin: ${origin}`);
+      console.log(`✅ Allowed origins: ${allowedOrigins.join(', ')}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -90,6 +102,7 @@ app.use('/api/wishlist', (req, res, next) => {
 }, wishlistRoutes);
 
 app.use('/api/users', userRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/payment', paymentRoutes);
 
 // Health check
@@ -131,6 +144,18 @@ app.use((req, res) => {
   });
 });
 
+// CORS error handler (before general error handler)
+app.use((err, req, res, next) => {
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'CORS: Origin not allowed',
+      allowedOrigins: allowedOrigins
+    });
+  }
+  next(err);
+});
+
 // Error handler middleware (harus di paling akhir)
 app.use(errorHandler);
 
@@ -140,8 +165,20 @@ app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log(`📍 URL: http://localhost:${PORT}`);
   console.log(`📦 Database: ${process.env.DATABASE_URL ? '✅ Connected' : '❌ Not configured'}`);
-  console.log(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+  console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
+  
+  // Gemini AI Configuration
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const geminiModel = process.env.GEMINI_MODEL || 'gemini-2.0-flash';
+  if (geminiKey && geminiKey.trim() !== '') {
+    console.log(`🤖 Gemini AI: ✅ Configured (Model: ${geminiModel})`);
+  } else {
+    console.log(`🤖 Gemini AI: ❌ Not configured (add GEMINI_API_KEY to .env)`);
+  }
+  
+  // Midtrans Configuration
   console.log(`💳 Midtrans: ${process.env.MIDTRANS_SERVER_KEY ? '✅ Configured (' + (process.env.MIDTRANS_IS_PRODUCTION === 'true' ? 'Production' : 'Sandbox') + ')' : '❌ NOT CONFIGURED'}`);
+  
   console.log('\n📋 API Endpoints:');
   console.log('  POST   /api/auth/register');
   console.log('  POST   /api/auth/login');
@@ -151,6 +188,10 @@ app.listen(PORT, () => {
   console.log('  GET    /api/cart');
   console.log('  GET    /api/wishlist');
   console.log('  GET    /api/orders/my-orders');
+  console.log('  POST   /api/chatbot/message');
+  console.log('  GET    /api/chatbot/initial');
+  console.log('  POST   /api/payment/create');
+  console.log('  GET    /api/payment/status/:orderId');
   console.log('  GET    /api/health');
   console.log('='.repeat(50) + '\n');
 });
