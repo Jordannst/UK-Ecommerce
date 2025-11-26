@@ -2,13 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Hero from '../components/Hero';
 import ProductCard from '../components/ProductCard';
-import CategoryCard from '../components/CategoryCard';
 import productService from '../services/productService';
-import categoryService from '../services/categoryService';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,10 +15,7 @@ const Home = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [productsData, categoriesData] = await Promise.all([
-        productService.getAllProducts(),
-        categoryService.getAllCategories(),
-      ]);
+      const productsData = await productService.getAllProducts();
       
       // Get latest 8 products
       const sortedProducts = productsData
@@ -29,7 +23,6 @@ const Home = () => {
         .slice(0, 8);
       
       setProducts(sortedProducts);
-      setCategories(categoriesData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -40,41 +33,6 @@ const Home = () => {
   return (
     <div>
       <Hero />
-
-      {/* Categories Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Jelajahi Berdasarkan Kategori</h2>
-            <p className="text-gray-600 mt-2">Temukan yang Anda cari</p>
-          </div>
-          <Link to="/categories" className="btn-ghost">
-            Lihat Semua →
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="card p-6 animate-pulse">
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gray-200 rounded-xl"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </div>
-        )}
-      </section>
 
       {/* Featured Products */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-gray-50 rounded-3xl">

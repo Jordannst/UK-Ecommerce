@@ -81,7 +81,6 @@ const ProductCard = ({ product }) => {
         {/* Product Info */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500">{product.category?.name || product.category || 'Uncategorized'}</span>
             {product.rating && (
               <div className="flex items-center space-x-1">
                 <svg className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">

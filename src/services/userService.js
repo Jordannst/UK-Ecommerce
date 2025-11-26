@@ -4,7 +4,8 @@ const userService = {
   // Admin: Get all users
   getAllUsers: async (params = {}) => {
     const response = await api.get('/users', { params });
-    return response.data.data;
+    // Backend returns { success: true, data: [...], pagination: {...} }
+    return response.data.data || [];
   },
 
   // Admin: Get single user

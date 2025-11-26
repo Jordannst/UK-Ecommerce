@@ -24,7 +24,7 @@ import Register from './pages/Register';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
-import AdminCategories from './pages/admin/AdminCategories';
+import AdminUsers from './pages/admin/AdminUsers';
 import AdminOrders from './pages/admin/AdminOrders';
 
 // Other
@@ -52,9 +52,9 @@ function App() {
                   <AdminProducts />
                 </ProtectedRoute>
               } />
-              <Route path="/admin/categories" element={
+              <Route path="/admin/users" element={
                 <ProtectedRoute adminOnly>
-                  <AdminCategories />
+                  <AdminUsers />
                 </ProtectedRoute>
               } />
               <Route path="/admin/orders" element={
