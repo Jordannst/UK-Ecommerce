@@ -9,13 +9,13 @@
     "preview": "vite preview",
     "backend": "cd backend && npm run dev",
     
-    "//": "Menjalankan check-vite-port.js sebelum vite dimulai",
+
     "prefrontend": "node scripts/check-vite-port.js",
     "frontend": "npm run prefrontend && vite",
     
     "dev:all": "concurrently -n \"FRONTEND,BACKEND\" -c \"blue,green\" --kill-others-on-fail \"npm run frontend\" \"npm run backend\"",
     
-    "//": "Menghapus kill-ports karena file tidak ada, hanya menggunakan timeout",
+  
     "dev:all:safe": "timeout /t 2 /nobreak >nul && concurrently -n \"FRONTEND,BACKEND\" -c \"blue,green\" \"npm run frontend\" \"npm run backend\"",
     
     "backend:install": "cd backend && npm install",
