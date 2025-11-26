@@ -49,29 +49,6 @@ const Login = () => {
     });
   };
 
-  // Quick login buttons for demo
-  const quickLogin = async (email, password) => {
-    setFormData({ email, password });
-    setError('');
-    setLoading(true);
-
-    const result = await login(email, password);
-
-    if (result.success) {
-      toast.success(`Selamat datang, ${result.user.name}! 👋`);
-      if (result.user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate(from, { replace: true });
-      }
-    } else {
-      setError(result.error || 'Login gagal. Silakan coba lagi.');
-      toast.error('Login gagal');
-    }
-
-    setLoading(false);
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
@@ -145,27 +122,6 @@ const Login = () => {
                 Daftar sekarang
               </Link>
             </p>
-          </div>
-
-          {/* Demo Quick Login */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center mb-4">Demo Login Cepat:</p>
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => quickLogin('john@student.unklab.ac.id', 'password123')}
-                className="w-full px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors"
-              >
-                👤 Login sebagai User
-              </button>
-              <button
-                type="button"
-                onClick={() => quickLogin('admin@unklab.ac.id', 'admin123')}
-                className="w-full px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 transition-colors"
-              >
-                🔐 Login sebagai Admin
-              </button>
-            </div>
           </div>
         </div>
 

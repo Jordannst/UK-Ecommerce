@@ -17,14 +17,21 @@ const Home = () => {
       setLoading(true);
       const productsData = await productService.getAllProducts();
       
+      // Pastikan productsData adalah array
+      if (!productsData || !Array.isArray(productsData)) {
+        setProducts([]);
+        return;
+      }
+      
       // Get latest 8 products
-      const sortedProducts = productsData
+      const sortedProducts = [...productsData]
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         .slice(0, 8);
       
       setProducts(sortedProducts);
     } catch (error) {
       console.error('Error loading data:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }

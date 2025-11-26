@@ -47,7 +47,15 @@ api.interceptors.response.use(
     
     // Don't log 401 errors during initial load (expected for unauthenticated users)
     if (error.response?.status !== 401) {
-      console.error('API Error:', error.response?.data || error.message);
+      console.error('API Error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        fullURL: error.config?.baseURL + error.config?.url,
+        data: error.response?.data,
+        message: error.message
+      });
     }
     
     return Promise.reject(error);

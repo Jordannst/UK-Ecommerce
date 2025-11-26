@@ -5,10 +5,18 @@ import { generateToken } from '../utils/jwt.js';
 // Register user baru
 export const register = async (req, res, next) => {
   try {
+    console.log('📝 Register route hit');
+    console.log('📥 Request body:', { 
+      name: req.body?.name, 
+      email: req.body?.email,
+      hasPassword: !!req.body?.password 
+    });
+
     const { name, email, password, phone, address } = req.body;
 
     // Validasi input
     if (!name || !email || !password) {
+      console.log('❌ Validation failed: Missing required fields');
       return res.status(400).json({
         success: false,
         message: 'Nama, email, dan password wajib diisi'
@@ -54,6 +62,7 @@ export const register = async (req, res, next) => {
     // Generate token
     const token = generateToken(user.id);
 
+    console.log('✅ Registration successful for:', email);
     res.status(201).json({
       success: true,
       message: 'Registrasi berhasil',
@@ -63,6 +72,7 @@ export const register = async (req, res, next) => {
       }
     });
   } catch (error) {
+    console.error('❌ Registration error:', error);
     next(error);
   }
 };

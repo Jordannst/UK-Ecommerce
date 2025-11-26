@@ -3,6 +3,7 @@ import prisma from '../utils/prisma.js';
 // Get user's wishlist
 export const getWishlist = async (req, res, next) => {
   try {
+    console.log('❤️ getWishlist controller called, userId:', req.user?.id);
     const userId = req.user.id;
 
     const wishlistItems = await prisma.wishlistItem.findMany({

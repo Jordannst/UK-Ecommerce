@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import orderService from '../services/orderService';
+import paymentService from '../services/paymentService';
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ const Checkout = () => {
   const { user } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const [snapReady, setSnapReady] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,8 +20,24 @@ const Checkout = () => {
     address: '',
     city: 'Airmadidi',
     notes: '',
-    paymentMethod: 'Transfer Bank',
+    paymentMethod: 'Midtrans',
   });
+
+  // Load Midtrans Snap script on mount
+  useEffect(() => {
+    const loadSnap = async () => {
+      try {
+        const config = await paymentService.getConfig();
+        await paymentService.loadSnapScript(config.clientKey, config.isProduction);
+        setSnapReady(true);
+        console.log('✅ Midtrans Snap loaded');
+      } catch (error) {
+        console.error('❌ Failed to load Midtrans Snap:', error);
+        toast.error('Gagal memuat sistem pembayaran. Refresh halaman.');
+      }
+    };
+    loadSnap();
+  }, []);
 
   // Auto-fill form dengan data user
   useEffect(() => {
@@ -48,6 +66,11 @@ const Checkout = () => {
       return;
     }
 
+    if (!snapReady) {
+      toast.error('Sistem pembayaran belum siap. Mohon tunggu...');
+      return;
+    }
+
     try {
       setLoading(true);
       toast.info('Memproses pesanan...');
@@ -62,15 +85,95 @@ const Checkout = () => {
         notes: formData.notes,
       };
 
+      // 1. Create order
       const order = await orderService.createOrder(orderData);
-      await clearCart();
       
-      toast.success('Pesanan berhasil dibuat! 🎉');
-      navigate(`/order-success/${order.id}`);
+      // 2. Create payment transaction
+      toast.info('Menyiapkan pembayaran...');
+      const payment = await paymentService.createPayment(order.id);
+      
+      // 3. Open Midtrans Snap popup
+      setLoading(false);
+      
+      paymentService.openSnapPopup(payment.snapToken, {
+        onSuccess: async (result) => {
+          console.log('✅ Payment success:', result);
+          await clearCart();
+          
+          // Polling status beberapa kali (karena Midtrans mungkin butuh waktu untuk update)
+          let statusUpdated = false;
+          for (let i = 0; i < 5; i++) {
+            try {
+              console.log(`Checking payment status (attempt ${i + 1}/5)...`);
+              const status = await paymentService.checkStatus(order.id);
+              
+              if (status.paymentStatus === 'paid' || status.orderStatus === 'processing') {
+                console.log('✅ Status updated to paid!');
+                statusUpdated = true;
+                break;
+              }
+              
+              // Wait 1 second before next check
+              if (i < 4) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+            } catch (err) {
+              console.warn('Could not check payment status:', err);
+            }
+          }
+          
+          if (!statusUpdated) {
+            console.warn('⚠️ Status belum terupdate. Silakan cek status manual.');
+            toast.warning('Status sedang diperbarui. Jika belum berubah, silakan klik "Cek Status" di Dashboard.');
+          }
+          
+          toast.success('Pembayaran berhasil! 🎉');
+          // Navigate to order success page
+          navigate(`/order-success/${order.id}`);
+        },
+        onPending: async (result) => {
+          console.log('⏳ Payment pending:', result);
+          await clearCart();
+          
+          // Check status dari backend
+          try {
+            await paymentService.checkStatus(order.id);
+          } catch (err) {
+            console.warn('Could not check payment status:', err);
+          }
+          
+          toast.info('Pembayaran tertunda. Silakan selesaikan pembayaran.');
+          setTimeout(() => {
+            navigate(`/order-success/${order.id}`);
+          }, 1000);
+        },
+        onError: (result) => {
+          console.error('❌ Payment error:', result);
+          toast.error('Pembayaran gagal. Silakan coba lagi.');
+        },
+        onClose: async () => {
+          console.log('🚪 Payment popup closed');
+          
+          // Check status setelah popup ditutup (bisa jadi user sudah bayar di popup lain)
+          try {
+            const status = await paymentService.checkStatus(order.id);
+            if (status.paymentStatus === 'paid') {
+              await clearCart();
+              toast.success('Pembayaran berhasil! 🎉');
+              navigate(`/order-success/${order.id}`);
+              return;
+            }
+          } catch (err) {
+            console.warn('Could not check payment status:', err);
+          }
+          
+          toast.warning('Pembayaran dibatalkan. Pesanan tersimpan, Anda dapat membayar nanti.');
+          navigate(`/dashboard`);
+        },
+      });
     } catch (error) {
       console.error('Error creating order:', error);
       toast.error(error.response?.data?.message || 'Gagal membuat pesanan. Silakan coba lagi.');
-    } finally {
       setLoading(false);
     }
   };
@@ -203,33 +306,61 @@ const Checkout = () => {
             <div className="card p-6 space-y-4">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Metode Pembayaran</h2>
 
-              <div className="space-y-3">
-                {[
-                  { value: 'Transfer Bank', label: 'Transfer Bank', icon: '🏦' },
-                  { value: 'Bayar di Tempat (COD)', label: 'Bayar di Tempat (COD)', icon: '💵' },
-                  { value: 'E-Wallet', label: 'E-Wallet (OVO, GoPay, Dana)', icon: '📱' },
-                ].map((method) => (
-                  <label 
-                    key={method.value} 
-                    className={`flex items-center space-x-3 cursor-pointer card p-4 transition-all ${
-                      formData.paymentMethod === method.value 
-                        ? 'border-unklab-blue bg-blue-50' 
-                        : 'hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value={method.value}
-                      checked={formData.paymentMethod === method.value}
-                      onChange={handleChange}
-                      className="w-4 h-4 text-unklab-blue focus:ring-unklab-blue"
-                    />
-                    <span className="text-xl">{method.icon}</span>
-                    <span className="text-gray-700 font-medium">{method.label}</span>
-                  </label>
-                ))}
+              {/* Midtrans Payment Gateway Info */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center">
+                    <span className="text-2xl">💳</span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Midtrans Payment Gateway</h3>
+                    <p className="text-sm text-gray-600">Pembayaran aman & terpercaya</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2">
+                  {['BCA', 'BNI', 'BRI', 'Mandiri'].map((bank) => (
+                    <div key={bank} className="bg-white rounded-lg p-2 text-center shadow-sm">
+                      <span className="text-xs font-medium text-gray-700">{bank}</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {[
+                    { name: 'GoPay', icon: '🟢' },
+                    { name: 'OVO', icon: '🟣' },
+                    { name: 'DANA', icon: '🔵' },
+                    { name: 'ShopeePay', icon: '🟠' },
+                    { name: 'Credit Card', icon: '💳' },
+                  ].map((method) => (
+                    <span key={method.name} className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded text-xs text-gray-600 shadow-sm">
+                      <span>{method.icon}</span>
+                      {method.name}
+                    </span>
+                  ))}
+                </div>
               </div>
+
+              {/* Loading indicator for Snap */}
+              {!snapReady && (
+                <div className="flex items-center gap-2 text-amber-600 bg-amber-50 p-3 rounded-lg">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  <span className="text-sm">Memuat sistem pembayaran...</span>
+                </div>
+              )}
+
+              {snapReady && (
+                <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Sistem pembayaran siap</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -277,14 +408,27 @@ const Checkout = () => {
 
               <button
                 type="submit"
-                disabled={loading || cartItems.length === 0}
-                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || cartItems.length === 0 || !snapReady}
+                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? 'Memproses...' : 'Buat Pesanan'}
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Memproses...
+                  </>
+                ) : (
+                  <>
+                    <span>💳</span>
+                    Bayar Sekarang
+                  </>
+                )}
               </button>
 
               <p className="text-xs text-gray-500 text-center">
-                Dengan menekan tombol di atas, Anda menyetujui syarat dan ketentuan yang berlaku
+                Pembayaran diproses secara aman melalui Midtrans
               </p>
             </div>
           </div>

@@ -3,6 +3,7 @@ import prisma from '../utils/prisma.js';
 // Get user's cart
 export const getCart = async (req, res, next) => {
   try {
+    console.log('🛒 getCart controller called, userId:', req.user?.id);
     const userId = req.user.id;
 
     const cartItems = await prisma.cartItem.findMany({

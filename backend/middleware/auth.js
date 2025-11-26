@@ -6,9 +6,11 @@ const prisma = new PrismaClient();
 // Middleware untuk verifikasi JWT token
 export const authenticate = async (req, res, next) => {
   try {
+    console.log(`🔐 Authenticate middleware called for: ${req.method} ${req.path}`);
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No authorization header found');
       return res.status(401).json({
         success: false,
         message: 'Token tidak ditemukan. Silakan login terlebih dahulu.'
@@ -42,6 +44,7 @@ export const authenticate = async (req, res, next) => {
 
       // Attach user ke request
       req.user = user;
+      console.log(`✅ Authentication successful for user: ${user.email} (ID: ${user.id})`);
       next();
     } catch (error) {
       return res.status(401).json({

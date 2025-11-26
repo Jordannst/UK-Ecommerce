@@ -1,16 +1,32 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import orderService from '../services/orderService';
+import paymentService from '../services/paymentService';
 
 const Dashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payingOrderId, setPayingOrderId] = useState(null);
+  const [checkingStatusId, setCheckingStatusId] = useState(null);
   const { user } = useAuth();
+  const toast = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadOrders();
+    loadMidtransSnap();
   }, []);
+
+  const loadMidtransSnap = async () => {
+    try {
+      const config = await paymentService.getConfig();
+      await paymentService.loadSnapScript(config.clientKey, config.isProduction);
+    } catch (error) {
+      console.error('Failed to load Midtrans:', error);
+    }
+  };
 
   const loadOrders = async () => {
     try {
@@ -41,14 +57,135 @@ const Dashboard = () => {
     return colors[status] || 'bg-gray-100 text-gray-700';
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status, paymentStatus) => {
+    // Jika sudah paid tapi masih pending, artinya menunggu admin approve
+    if (status === 'pending' && paymentStatus === 'paid') {
+      return 'Menunggu Konfirmasi';
+    }
+    
     const labels = {
-      pending: 'Menunggu',
+      pending: 'Menunggu Pembayaran',
       processing: 'Diproses',
       completed: 'Selesai',
       cancelled: 'Dibatalkan',
     };
     return labels[status] || status;
+  };
+
+  const getPaymentStatusLabel = (status) => {
+    const labels = {
+      pending: 'Belum Bayar',
+      paid: 'Sudah Bayar',
+      expired: 'Kadaluarsa',
+      cancelled: 'Dibatalkan',
+    };
+    return labels[status] || status;
+  };
+
+  const getPaymentStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-amber-100 text-amber-700',
+      paid: 'bg-green-100 text-green-700',
+      expired: 'bg-gray-100 text-gray-700',
+      cancelled: 'bg-red-100 text-red-700',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  // Handle check payment status
+  const handleCheckStatus = async (orderId) => {
+    try {
+      setCheckingStatusId(orderId);
+      toast.info('Memeriksa status pembayaran...');
+      
+      const status = await paymentService.checkStatus(orderId);
+      
+      // Update orders list
+      await loadOrders();
+      
+      if (status.paymentStatus === 'paid') {
+        toast.success('✅ Pembayaran berhasil! Status telah diperbarui.');
+      } else if (status.paymentStatus === 'pending') {
+        toast.info('Pembayaran masih menunggu. Silakan selesaikan pembayaran.');
+      } else {
+        toast.warning(`Status pembayaran: ${status.paymentStatus}`);
+      }
+    } catch (error) {
+      console.error('Error checking status:', error);
+      toast.error(error.response?.data?.message || 'Gagal memeriksa status pembayaran');
+    } finally {
+      setCheckingStatusId(null);
+    }
+  };
+
+  // Handle payment for pending orders
+  const handlePayNow = async (orderId) => {
+    try {
+      setPayingOrderId(orderId);
+      toast.info('Menyiapkan pembayaran...');
+
+      const payment = await paymentService.createPayment(orderId);
+
+      paymentService.openSnapPopup(payment.snapToken, {
+        onSuccess: async (result) => {
+          console.log('✅ Payment success:', result);
+          
+          // Check status dari backend untuk update
+          try {
+            await paymentService.checkStatus(orderId);
+          } catch (err) {
+            console.warn('Could not check payment status:', err);
+          }
+          
+          toast.success('Pembayaran berhasil! 🎉');
+          await loadOrders(); // Refresh orders
+          setTimeout(() => {
+            navigate(`/order-success/${orderId}`);
+          }, 500);
+        },
+        onPending: async (result) => {
+          console.log('⏳ Payment pending:', result);
+          
+          // Check status dari backend
+          try {
+            await paymentService.checkStatus(orderId);
+          } catch (err) {
+            console.warn('Could not check payment status:', err);
+          }
+          
+          toast.info('Pembayaran tertunda. Silakan selesaikan pembayaran.');
+          await loadOrders();
+        },
+        onError: (result) => {
+          console.error('❌ Payment error:', result);
+          toast.error('Pembayaran gagal. Silakan coba lagi.');
+        },
+        onClose: async () => {
+          console.log('🚪 Payment popup closed');
+          
+          // Check status setelah popup ditutup
+          try {
+            const status = await paymentService.checkStatus(orderId);
+            if (status.paymentStatus === 'paid') {
+              toast.success('Pembayaran berhasil! 🎉');
+              await loadOrders();
+              navigate(`/order-success/${orderId}`);
+              return;
+            }
+          } catch (err) {
+            console.warn('Could not check payment status:', err);
+          }
+          
+          toast.warning('Popup pembayaran ditutup. Cek status untuk update terbaru.');
+          await loadOrders();
+        },
+      });
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      toast.error(error.response?.data?.message || 'Gagal membuka pembayaran');
+    } finally {
+      setPayingOrderId(null);
+    }
   };
 
   return (
@@ -182,9 +319,21 @@ const Dashboard = () => {
                           })}
                         </p>
                       </div>
-                      <span className={`badge ${getStatusColor(order.status)}`}>
-                        {getStatusLabel(order.status)}
-                      </span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`badge ${getStatusColor(order.status)}`}>
+                          {getStatusLabel(order.status, order.paymentStatus)}
+                        </span>
+                        {order.paymentStatus && (
+                          <span className={`badge ${getPaymentStatusColor(order.paymentStatus)}`}>
+                            {getPaymentStatusLabel(order.paymentStatus)}
+                          </span>
+                        )}
+                        {order.status === 'pending' && order.paymentStatus === 'paid' && (
+                          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                            ⏳ Menunggu admin
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-3 mb-3">
@@ -207,12 +356,61 @@ const Dashboard = () => {
                       <span className="font-bold text-unklab-blue">
                         {formatPrice(order.totalAmount)}
                       </span>
-                      <Link
-                        to={`/order-success/${order.id}`}
-                        className="text-sm text-unklab-blue hover:underline"
-                      >
-                        Lihat Detail →
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        {/* Check Status button */}
+                        {order.status === 'pending' && (
+                          <button
+                            onClick={() => handleCheckStatus(order.id)}
+                            disabled={checkingStatusId === order.id}
+                            className="px-3 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-200 transition-all disabled:opacity-50 flex items-center gap-2"
+                            title="Cek status pembayaran terbaru"
+                          >
+                            {checkingStatusId === order.id ? (
+                              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Cek Status
+                              </>
+                            )}
+                          </button>
+                        )}
+                        
+                        {/* Pay Now button for pending payment */}
+                        {order.status === 'pending' && order.paymentStatus === 'pending' && (
+                          <button
+                            onClick={() => handlePayNow(order.id)}
+                            disabled={payingOrderId === order.id}
+                            className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-medium rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center gap-2"
+                          >
+                            {payingOrderId === order.id ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                                Memproses...
+                              </>
+                            ) : (
+                              <>
+                                <span>💳</span>
+                                Bayar Sekarang
+                              </>
+                            )}
+                          </button>
+                        )}
+                        <Link
+                          to={`/order-success/${order.id}`}
+                          className="text-sm text-unklab-blue hover:underline"
+                        >
+                          Lihat Detail →
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}
