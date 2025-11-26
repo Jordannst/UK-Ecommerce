@@ -10,7 +10,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "setup:env": "node -e \"const fs = require('fs'); if (!fs.existsSync('.env')) { fs.copyFileSync('.env.example', '.env'); console.log('✅ File .env berhasil dibuat dari .env.example'); console.log('⚠️  Jangan lupa edit file .env dan isi dengan konfigurasi database Anda!'); } else { console.log('⚠️  File .env sudah ada'); }\""
   },
   "keywords": [],
   "author": "",

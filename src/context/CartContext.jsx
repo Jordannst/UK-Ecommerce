@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import cartService from '../services/cartService';
+import authService from '../services/authService';
 
 const CartContext = createContext();
 
@@ -15,18 +16,31 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Load cart on mount
+  // Load cart on mount only if user is authenticated
   useEffect(() => {
-    loadCart();
+    if (authService.isAuthenticated()) {
+      loadCart();
+    }
   }, []);
 
   const loadCart = async () => {
+    // Only load if user is authenticated
+    if (!authService.isAuthenticated()) {
+      setCartItems([]);
+      return;
+    }
+    
     try {
       setLoading(true);
       const items = await cartService.getCartItems();
       setCartItems(items);
     } catch (error) {
-      console.error('Error loading cart:', error);
+      // If 401, user is not authenticated, just clear cart
+      if (error.response?.status === 401) {
+        setCartItems([]);
+      } else {
+        console.error('Error loading cart:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -34,6 +48,11 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = async (product, quantity = 1) => {
     try {
+      // Check if user is authenticated
+      if (!authService.isAuthenticated()) {
+        throw new Error('Please login to add items to cart');
+      }
+
       // Check if product already in cart
       const existingItem = cartItems.find(item => item.productId === product.id);
       
@@ -47,14 +66,8 @@ export const CartProvider = ({ children }) => {
           item.id === existingItem.id ? updatedItem : item
         ));
       } else {
-        // Add new item
-        const newItem = await cartService.addToCart({
-          productId: product.id,
-          name: product.name,
-          price: product.price,
-          image: product.image,
-          quantity,
-        });
+        // Add new item - fix: pass productId and quantity as separate parameters
+        const newItem = await cartService.addToCart(product.id, quantity);
         setCartItems([...cartItems, newItem]);
       }
       return true;

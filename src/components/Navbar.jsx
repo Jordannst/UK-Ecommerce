@@ -22,7 +22,6 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Beranda', path: '/' },
     { name: 'Belanja', path: '/shop' },
-    { name: 'Kategori', path: '/categories' },
     { name: 'Tentang', path: '/about' },
   ];
 

@@ -29,7 +29,10 @@ const Categories = () => {
   };
 
   const getProductCountByCategory = (categoryName) => {
-    return products.filter((p) => p.category === categoryName).length;
+    return products.filter((p) => {
+      const pCategoryName = p.category?.name || p.category;
+      return pCategoryName === categoryName;
+    }).length;
   };
 
   return (

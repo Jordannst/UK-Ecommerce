@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import productService from '../../services/productService';
-import categoryService from '../../services/categoryService';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -13,7 +11,6 @@ const AdminProducts = () => {
     name: '',
     description: '',
     price: '',
-    category: '',
     faculty: '',
     image: '',
     stock: '',
@@ -30,12 +27,8 @@ const AdminProducts = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [productsData, categoriesData] = await Promise.all([
-        productService.getAllProducts(),
-        categoryService.getAllCategories(),
-      ]);
+      const productsData = await productService.getAllProducts();
       setProducts(productsData);
-      setCategories(categoriesData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -55,7 +48,6 @@ const AdminProducts = () => {
         name: '',
         description: '',
         price: '',
-        category: '',
         faculty: '',
         image: '',
         stock: '',
@@ -109,7 +101,8 @@ const AdminProducts = () => {
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
       formDataToSend.append('stock', formData.stock);
-      formDataToSend.append('categoryId', formData.category);
+      // Set default categoryId to 1 (Fashion) - adjust based on your database
+      formDataToSend.append('categoryId', '1');
       formDataToSend.append('faculty', formData.faculty || '');
       
       // Append image file jika ada
@@ -187,7 +180,6 @@ const AdminProducts = () => {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategori</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Harga</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stok</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
@@ -209,7 +201,6 @@ const AdminProducts = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
                         <td className="px-6 py-4 text-sm font-medium text-gray-900">
                           {formatPrice(product.price)}
                         </td>
@@ -269,7 +260,7 @@ const AdminProducts = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="input-field"
-                  placeholder="UNKLAB Hoodie Premium"
+                  placeholder="Masukan nama produk..."
                 />
               </div>
 
@@ -311,36 +302,7 @@ const AdminProducts = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Kategori *</label>
-                  <select
-                    required
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="input-field"
-                  >
-                    <option value="">Pilih kategori</option>
-                    {categories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Fakultas/UKM *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.faculty}
-                    onChange={(e) => setFormData({ ...formData, faculty: e.target.value })}
-                    className="input-field"
-                    placeholder="UKM Kreatif"
-                  />
-                </div>
-              </div>
+   
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Gambar Produk *</label>
@@ -377,7 +339,7 @@ const AdminProducts = () => {
                 </div>
 
                 {!imagePreview && (
-                  <p className="text-sm text-red-600 mt-2">* Harap upload gambar produk</p>
+                  <p className="text-sm text-red-600 mt-2"></p>
                 )}
               </div>
 

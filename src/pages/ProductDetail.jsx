@@ -28,8 +28,12 @@ const ProductDetail = () => {
 
       // Load related products
       const allProducts = await productService.getAllProducts();
+      const currentCategoryId = data.category?.id || data.categoryId;
       const related = allProducts
-        .filter((p) => p.category === data.category && p.id !== data.id)
+        .filter((p) => {
+          const pCategoryId = p.category?.id || p.categoryId;
+          return pCategoryId === currentCategoryId && p.id !== data.id;
+        })
         .slice(0, 4);
       setRelatedProducts(related);
     } catch (error) {
@@ -129,9 +133,6 @@ const ProductDetail = () => {
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="badge bg-unklab-light text-unklab-blue">
-                {product.category}
-              </span>
               {product.rating && (
                 <div className="flex items-center space-x-1">
                   <svg className="w-5 h-5 text-yellow-400 fill-current" viewBox="0 0 20 20">

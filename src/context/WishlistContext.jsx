@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import wishlistService from '../services/wishlistService';
+import authService from '../services/authService';
 
 const WishlistContext = createContext();
 
@@ -15,17 +16,31 @@ export const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Load wishlist on mount only if user is authenticated
   useEffect(() => {
-    loadWishlist();
+    if (authService.isAuthenticated()) {
+      loadWishlist();
+    }
   }, []);
 
   const loadWishlist = async () => {
+    // Only load if user is authenticated
+    if (!authService.isAuthenticated()) {
+      setWishlistItems([]);
+      return;
+    }
+    
     try {
       setLoading(true);
       const items = await wishlistService.getWishlist();
       setWishlistItems(items);
     } catch (error) {
-      console.error('Error loading wishlist:', error);
+      // If 401, user is not authenticated, just clear wishlist
+      if (error.response?.status === 401) {
+        setWishlistItems([]);
+      } else {
+        console.error('Error loading wishlist:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -33,12 +48,13 @@ export const WishlistProvider = ({ children }) => {
 
   const addToWishlist = async (product) => {
     try {
-      const newItem = await wishlistService.addToWishlist({
-        productId: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.image,
-      });
+      // Check if user is authenticated
+      if (!authService.isAuthenticated()) {
+        throw new Error('Please login to add items to wishlist');
+      }
+
+      // Fix: pass productId as parameter, not an object
+      const newItem = await wishlistService.addToWishlist(product.id);
       setWishlistItems([...wishlistItems, newItem]);
       return true;
     } catch (error) {

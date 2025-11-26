@@ -33,13 +33,23 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle 401 Unauthorized - redirect ke login
+    // Only redirect if not already on login/register page to prevent redirect loops
     if (error.response?.status === 401) {
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      const currentPath = window.location.pathname;
+      const isAuthPage = currentPath === '/login' || currentPath === '/register';
+      
+      if (!isAuthPage) {
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
     }
     
-    console.error('API Error:', error.response?.data || error.message);
+    // Don't log 401 errors during initial load (expected for unauthenticated users)
+    if (error.response?.status !== 401) {
+      console.error('API Error:', error.response?.data || error.message);
+    }
+    
     return Promise.reject(error);
   }
 );

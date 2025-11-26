@@ -1,45 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import productService from '../services/productService';
-import categoryService from '../services/categoryService';
 
 const Shop = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  const selectedCategory = searchParams.get('category') || 'All';
   const [priceRange, setPriceRange] = useState('all');
 
   useEffect(() => {
-    loadCategories();
-  }, []);
-
-  useEffect(() => {
     loadProducts();
-  }, [selectedCategory, priceRange, searchQuery]);
-
-  const loadCategories = async () => {
-    try {
-      const data = await categoryService.getAllCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  };
+  }, [priceRange, searchQuery]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
       let data = await productService.getAllProducts();
-
-      // Filter by category
-      if (selectedCategory !== 'All') {
-        data = data.filter((p) => p.category === selectedCategory);
-      }
 
       // Filter by price range
       if (priceRange === 'low') {
@@ -64,15 +40,6 @@ const Shop = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCategoryChange = (category) => {
-    if (category === 'All') {
-      searchParams.delete('category');
-    } else {
-      searchParams.set('category', category);
-    }
-    setSearchParams(searchParams);
   };
 
   return (
@@ -113,36 +80,6 @@ const Shop = () => {
         {/* Filters Sidebar */}
         <aside className="lg:w-64 flex-shrink-0">
           <div className="card p-6 sticky top-24 space-y-6">
-            {/* Categories */}
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Categories</h3>
-              <div className="space-y-2">
-                <button
-                  onClick={() => handleCategoryChange('All')}
-                  className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                    selectedCategory === 'All'
-                      ? 'bg-unklab-blue text-white'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  All Products
-                </button>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => handleCategoryChange(category.name)}
-                    className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                      selectedCategory === category.name
-                        ? 'bg-unklab-blue text-white'
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {category.icon} {category.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Price Range */}
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Price Range</h3>
