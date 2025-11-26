@@ -45,10 +45,10 @@ const Cart = () => {
               d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
             />
           </svg>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h2>
-          <p className="text-gray-600 mb-8">Add some products to get started!</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Keranjang Anda Kosong</h2>
+          <p className="text-gray-600 mb-8">Yuk mulai belanja dan temukan produk favoritmu!</p>
           <Link to="/shop" className="btn-primary inline-block">
-            Continue Shopping
+            Mulai Belanja
           </Link>
         </div>
       </div>
@@ -57,7 +57,7 @@ const Cart = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Keranjang Belanja</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
@@ -70,15 +70,15 @@ const Cart = () => {
         {/* Order Summary */}
         <div className="lg:col-span-1">
           <div className="card p-6 sticky top-24 space-y-6">
-            <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
+            <h2 className="text-xl font-bold text-gray-900">Ringkasan Pesanan</h2>
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
+                <span className="text-gray-600">Subtotal ({cartItems.length} item)</span>
                 <span className="font-medium">{formatPrice(cartTotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
+                <span className="text-gray-600">Ongkos Kirim</span>
                 <span className="font-medium">{formatPrice(shippingCost)}</span>
               </div>
               <div className="border-t border-gray-200 pt-3 flex justify-between text-base">
@@ -88,29 +88,29 @@ const Cart = () => {
             </div>
 
             <Link to="/checkout" className="btn-primary w-full block text-center">
-              Proceed to Checkout
+              Lanjut ke Pembayaran
             </Link>
 
             <Link
               to="/shop"
               className="text-center text-sm text-unklab-blue hover:underline block"
             >
-              Continue Shopping
+              Lanjut Belanja
             </Link>
 
             {/* Promo Code */}
             <div className="border-t border-gray-200 pt-6">
               <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Promo Code
+                Kode Promo
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Enter code"
+                  placeholder="Masukkan kode"
                   className="input-field text-sm py-2"
                 />
                 <button className="btn-secondary text-sm py-2 whitespace-nowrap">
-                  Apply
+                  Terapkan
                 </button>
               </div>
             </div>
@@ -122,5 +122,3 @@ const Cart = () => {
 };
 
 export default Cart;
-
-

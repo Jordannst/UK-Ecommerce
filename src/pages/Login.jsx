@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const toast = useToast();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -25,6 +27,7 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
+      toast.success(`Selamat datang, ${result.user.name}! 👋`);
       // Redirect based on user role
       if (result.user.role === 'admin') {
         navigate('/admin');
@@ -33,6 +36,7 @@ const Login = () => {
       }
     } else {
       setError(result.error || 'Login gagal. Silakan coba lagi.');
+      toast.error('Login gagal. Periksa email dan password Anda.');
     }
 
     setLoading(false);
@@ -54,6 +58,7 @@ const Login = () => {
     const result = await login(email, password);
 
     if (result.success) {
+      toast.success(`Selamat datang, ${result.user.name}! 👋`);
       if (result.user.role === 'admin') {
         navigate('/admin');
       } else {
@@ -61,6 +66,7 @@ const Login = () => {
       }
     } else {
       setError(result.error || 'Login gagal. Silakan coba lagi.');
+      toast.error('Login gagal');
     }
 
     setLoading(false);
@@ -174,4 +180,3 @@ const Login = () => {
 };
 
 export default Login;
-

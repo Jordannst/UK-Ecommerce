@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import { useState } from 'react';
 
 const Wishlist = () => {
   const { wishlistItems, removeFromWishlist, loading } = useWishlist();
   const { addToCart } = useCart();
+  const toast = useToast();
   const [addingToCart, setAddingToCart] = useState({});
 
   const formatPrice = (price) => {
@@ -26,8 +28,18 @@ const Wishlist = () => {
       image: item.image,
     };
     
-    await addToCart(product);
+    const success = await addToCart(product);
+    if (success) {
+      toast.success(`${item.name} ditambahkan ke keranjang! 🛒`);
+    } else {
+      toast.error('Gagal menambahkan ke keranjang');
+    }
     setAddingToCart({ ...addingToCart, [item.id]: false });
+  };
+
+  const handleRemove = (item) => {
+    removeFromWishlist(item.id);
+    toast.info(`${item.name} dihapus dari wishlist`);
   };
 
   if (loading) {
@@ -68,10 +80,10 @@ const Wishlist = () => {
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
             />
           </svg>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Your wishlist is empty</h2>
-          <p className="text-gray-600 mb-8">Save your favorite items for later!</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Wishlist Anda Kosong</h2>
+          <p className="text-gray-600 mb-8">Simpan produk favoritmu untuk nanti!</p>
           <Link to="/shop" className="btn-primary inline-block">
-            Explore Products
+            Jelajahi Produk
           </Link>
         </div>
       </div>
@@ -82,8 +94,8 @@ const Wishlist = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Wishlist</h1>
-          <p className="text-gray-600 mt-2">{wishlistItems.length} items saved</p>
+          <h1 className="text-3xl font-bold text-gray-900">Wishlist Saya</h1>
+          <p className="text-gray-600 mt-2">{wishlistItems.length} produk tersimpan</p>
         </div>
       </div>
 
@@ -92,8 +104,9 @@ const Wishlist = () => {
           <div key={item.id} className="card p-4 relative group">
             {/* Remove Button */}
             <button
-              onClick={() => removeFromWishlist(item.id)}
+              onClick={() => handleRemove(item)}
               className="absolute top-4 right-4 z-10 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center hover:bg-red-50 transition-colors"
+              title="Hapus dari wishlist"
             >
               <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -131,7 +144,7 @@ const Wishlist = () => {
                 disabled={addingToCart[item.id]}
                 className="btn-primary w-full text-sm disabled:opacity-50"
               >
-                {addingToCart[item.id] ? 'Adding...' : 'Add to Cart'}
+                {addingToCart[item.id] ? 'Menambahkan...' : 'Tambah ke Keranjang'}
               </button>
             </div>
           </div>
@@ -142,5 +155,3 @@ const Wishlist = () => {
 };
 
 export default Wishlist;
-
-

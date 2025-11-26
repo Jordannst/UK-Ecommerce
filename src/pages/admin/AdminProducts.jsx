@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import productService from '../../services/productService';
+import { useToast } from '../../context/ToastContext';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const AdminProducts = () => {
+  const toast = useToast();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, product: null });
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -72,13 +76,13 @@ const AdminProducts = () => {
     if (file) {
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        alert('Harap pilih file gambar (JPG, PNG, WEBP)');
+        toast.warning('Harap pilih file gambar (JPG, PNG, WEBP)');
         return;
       }
 
       // Validate file size (max 5MB untuk Cloudinary)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Ukuran file maksimal 5MB');
+        toast.warning('Ukuran file maksimal 5MB');
         return;
       }
 
@@ -88,6 +92,7 @@ const AdminProducts = () => {
       // Create preview URL lokal
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
+      toast.success('Gambar berhasil dipilih');
     }
   };
 
@@ -115,31 +120,38 @@ const AdminProducts = () => {
 
       if (editingProduct) {
         await productService.updateProduct(editingProduct.id, formDataToSend);
+        toast.success('Produk berhasil diperbarui! ✅');
       } else {
         // Untuk create, wajib ada gambar
         if (!imageFile) {
-          alert('Harap upload gambar produk');
+          toast.warning('Harap upload gambar produk');
           return;
         }
         await productService.createProduct(formDataToSend);
+        toast.success('Produk berhasil ditambahkan! 🎉');
       }
 
       handleCloseModal();
       loadData();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert(error.response?.data?.message || 'Gagal menyimpan produk');
+      toast.error(error.response?.data?.message || 'Gagal menyimpan produk');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+  const handleDelete = (product) => {
+    setDeleteConfirm({ show: true, product });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirm.product) {
       try {
-        await productService.deleteProduct(id);
+        await productService.deleteProduct(deleteConfirm.product.id);
+        toast.success(`${deleteConfirm.product.name} berhasil dihapus`);
         loadData();
       } catch (error) {
         console.error('Error deleting product:', error);
-        alert('Gagal menghapus produk');
+        toast.error('Gagal menghapus produk');
       }
     }
   };
@@ -222,8 +234,9 @@ const AdminProducts = () => {
                               </svg>
                             </button>
                             <button
-                              onClick={() => handleDelete(product.id)}
+                              onClick={() => handleDelete(product)}
                               className="text-red-600 hover:text-red-800"
+                              title="Hapus produk"
                             >
                               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -363,6 +376,18 @@ const AdminProducts = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, product: null })}
+        onConfirm={confirmDelete}
+        title="Hapus Produk"
+        message={`Apakah Anda yakin ingin menghapus "${deleteConfirm.product?.name}"? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        type="danger"
+      />
     </div>
   );
 };

@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useState } from 'react';
+import { useToast } from '../context/ToastContext';
 
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist, getWishlistItemByProductId } = useWishlist();
-  const [showNotification, setShowNotification] = useState(false);
+  const toast = useToast();
 
   const inWishlist = isInWishlist(product.id);
 
@@ -14,8 +14,9 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     const success = await addToCart(product);
     if (success) {
-      setShowNotification(true);
-      setTimeout(() => setShowNotification(false), 2000);
+      toast.success(`${product.name} ditambahkan ke keranjang! 🛒`);
+    } else {
+      toast.error('Silakan login terlebih dahulu');
     }
   };
 
@@ -25,9 +26,15 @@ const ProductCard = ({ product }) => {
       const wishlistItem = getWishlistItemByProductId(product.id);
       if (wishlistItem) {
         await removeFromWishlist(wishlistItem.id);
+        toast.info(`${product.name} dihapus dari wishlist`);
       }
     } else {
-      await addToWishlist(product);
+      const success = await addToWishlist(product);
+      if (success) {
+        toast.success(`${product.name} ditambahkan ke wishlist! ❤️`);
+      } else {
+        toast.error('Silakan login terlebih dahulu');
+      }
     }
   };
 
@@ -42,17 +49,11 @@ const ProductCard = ({ product }) => {
   return (
     <Link to={`/product/${product.id}`} className="group">
       <div className="card p-4 relative overflow-hidden">
-        {/* Notification */}
-        {showNotification && (
-          <div className="absolute top-4 left-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium z-10 animate-fade-in">
-            Ditambahkan ke keranjang!
-          </div>
-        )}
-
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
           className="absolute top-4 right-4 z-10 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center hover:scale-110 transition-transform duration-200"
+          title={inWishlist ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
         >
           <svg
             className={`w-5 h-5 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
@@ -125,5 +126,3 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
-
-

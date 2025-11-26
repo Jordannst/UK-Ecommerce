@@ -1,22 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import orderService from '../services/orderService';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cartItems, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
     phone: '',
     address: '',
     city: 'Airmadidi',
     notes: '',
     paymentMethod: 'Transfer Bank',
   });
+
+  // Auto-fill form dengan data user
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -29,41 +44,32 @@ const Checkout = () => {
     e.preventDefault();
     
     if (cartItems.length === 0) {
-      alert('Your cart is empty!');
+      toast.warning('Keranjang Anda kosong!');
       return;
     }
 
     try {
       setLoading(true);
+      toast.info('Memproses pesanan...');
 
       const orderData = {
-        userId: 2, // Default user
-        items: cartItems.map((item) => ({
-          productId: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })),
-        total: cartTotal + shippingCost,
-        status: 'Pending',
+        shippingName: formData.name,
+        shippingPhone: formData.phone,
+        shippingAddress: formData.address,
+        shippingCity: formData.city,
+        shippingZip: '',
         paymentMethod: formData.paymentMethod,
-        shippingAddress: `${formData.address}, ${formData.city}`,
-        customerInfo: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-        },
         notes: formData.notes,
       };
 
       const order = await orderService.createOrder(orderData);
       await clearCart();
       
+      toast.success('Pesanan berhasil dibuat! 🎉');
       navigate(`/order-success/${order.id}`);
     } catch (error) {
       console.error('Error creating order:', error);
-      alert('Failed to create order. Please try again.');
+      toast.error(error.response?.data?.message || 'Gagal membuat pesanan. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -88,44 +94,50 @@ const Checkout = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Customer Information */}
-            <div className="card p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="John Doe"
-                />
+            {/* Customer Information - Auto-filled */}
+            <div className="card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-900">Informasi Pemesan</h2>
+                <span className="badge bg-green-100 text-green-700">Data dari akun</span>
               </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                <div className="w-12 h-12 bg-gradient-to-br from-unklab-blue to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">{user?.name?.charAt(0) || 'U'}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-900">{user?.name || 'Pengguna'}</p>
+                  <p className="text-sm text-gray-500">{user?.email}</p>
+                  {user?.phone && (
+                    <p className="text-sm text-gray-500">{user.phone}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Shipping Address */}
+            <div className="card p-6 space-y-4">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Alamat Pengiriman</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
+                    Nama Penerima *
                   </label>
                   <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
+                    type="text"
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
                     required
                     className="input-field"
-                    placeholder="john@student.unklab.ac.id"
+                    placeholder="Nama penerima paket"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number *
+                    Nomor Telepon *
                   </label>
                   <input
                     type="tel"
@@ -138,15 +150,10 @@ const Checkout = () => {
                   />
                 </div>
               </div>
-            </div>
-
-            {/* Shipping Address */}
-            <div className="card p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Shipping Address</h2>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address *
+                  Alamat Lengkap *
                 </label>
                 <textarea
                   name="address"
@@ -155,13 +162,13 @@ const Checkout = () => {
                   required
                   rows="3"
                   className="input-field"
-                  placeholder="Street address, building, apt number..."
+                  placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan, kecamatan..."
                 ></textarea>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City *
+                  Kota *
                 </label>
                 <select
                   name="city"
@@ -179,7 +186,7 @@ const Checkout = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Order Notes (Optional)
+                  Catatan Pesanan (Opsional)
                 </label>
                 <textarea
                   name="notes"
@@ -187,27 +194,39 @@ const Checkout = () => {
                   onChange={handleChange}
                   rows="2"
                   className="input-field"
-                  placeholder="Any special instructions..."
+                  placeholder="Catatan khusus untuk kurir (warna rumah, patokan, dll)"
                 ></textarea>
               </div>
             </div>
 
             {/* Payment Method */}
             <div className="card p-6 space-y-4">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment Method</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Metode Pembayaran</h2>
 
               <div className="space-y-3">
-                {['Transfer Bank', 'Cash on Delivery', 'E-Wallet'].map((method) => (
-                  <label key={method} className="flex items-center space-x-3 cursor-pointer card p-4 hover:border-unklab-blue">
+                {[
+                  { value: 'Transfer Bank', label: 'Transfer Bank', icon: '🏦' },
+                  { value: 'Bayar di Tempat (COD)', label: 'Bayar di Tempat (COD)', icon: '💵' },
+                  { value: 'E-Wallet', label: 'E-Wallet (OVO, GoPay, Dana)', icon: '📱' },
+                ].map((method) => (
+                  <label 
+                    key={method.value} 
+                    className={`flex items-center space-x-3 cursor-pointer card p-4 transition-all ${
+                      formData.paymentMethod === method.value 
+                        ? 'border-unklab-blue bg-blue-50' 
+                        : 'hover:border-gray-300'
+                    }`}
+                  >
                     <input
                       type="radio"
                       name="paymentMethod"
-                      value={method}
-                      checked={formData.paymentMethod === method}
+                      value={method.value}
+                      checked={formData.paymentMethod === method.value}
                       onChange={handleChange}
                       className="w-4 h-4 text-unklab-blue focus:ring-unklab-blue"
                     />
-                    <span className="text-gray-700 font-medium">{method}</span>
+                    <span className="text-xl">{method.icon}</span>
+                    <span className="text-gray-700 font-medium">{method.label}</span>
                   </label>
                 ))}
               </div>
@@ -217,7 +236,7 @@ const Checkout = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="card p-6 sticky top-24 space-y-6">
-              <h2 className="text-xl font-bold text-gray-900">Order Summary</h2>
+              <h2 className="text-xl font-bold text-gray-900">Ringkasan Pesanan</h2>
 
               {/* Items */}
               <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -243,15 +262,15 @@ const Checkout = () => {
               {/* Totals */}
               <div className="border-t border-gray-200 pt-4 space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-600">Subtotal ({cartItems.length} item)</span>
                   <span className="font-medium">{formatPrice(cartTotal)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-600">Ongkos Kirim</span>
                   <span className="font-medium">{formatPrice(shippingCost)}</span>
                 </div>
                 <div className="border-t border-gray-200 pt-3 flex justify-between text-base">
-                  <span className="font-semibold">Total</span>
+                  <span className="font-semibold">Total Pembayaran</span>
                   <span className="font-bold text-unklab-blue">{formatPrice(total)}</span>
                 </div>
               </div>
@@ -261,8 +280,12 @@ const Checkout = () => {
                 disabled={loading || cartItems.length === 0}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Processing...' : 'Place Order'}
+                {loading ? 'Memproses...' : 'Buat Pesanan'}
               </button>
+
+              <p className="text-xs text-gray-500 text-center">
+                Dengan menekan tombol di atas, Anda menyetujui syarat dan ketentuan yang berlaku
+              </p>
             </div>
           </div>
         </div>
@@ -272,5 +295,3 @@ const Checkout = () => {
 };
 
 export default Checkout;
-
-

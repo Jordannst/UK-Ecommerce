@@ -32,7 +32,7 @@ const AdminDashboard = () => {
         totalProducts: products.length,
         totalOrders: orders.length,
         totalCategories: categories.length,
-        pendingOrders: orders.filter((o) => o.status === 'Pending').length,
+        pendingOrders: orders.filter((o) => o.status === 'pending').length,
       });
 
       setRecentOrders(
@@ -52,7 +52,27 @@ const AdminDashboard = () => {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
-    }).format(price);
+    }).format(price || 0);
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      pending: 'Menunggu',
+      processing: 'Diproses',
+      completed: 'Selesai',
+      cancelled: 'Dibatalkan',
+    };
+    return labels[status] || status;
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-yellow-100 text-yellow-700',
+      processing: 'bg-blue-100 text-blue-700',
+      completed: 'bg-green-100 text-green-700',
+      cancelled: 'bg-red-100 text-red-700',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
   };
 
   return (
@@ -155,7 +175,7 @@ const AdminDashboard = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID Pesanan</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">No. Pesanan</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pelanggan</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
@@ -165,23 +185,23 @@ const AdminDashboard = () => {
                   <tbody className="divide-y divide-gray-200">
                     {recentOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900">#{order.id}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-unklab-blue">{order.orderNumber}</td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {new Date(order.createdAt).toLocaleDateString()}
+                          {new Date(order.createdAt).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600">
-                          {order.customerInfo?.name || 'N/A'}
+                          {order.shippingName || order.user?.name || 'N/A'}
                         </td>
                         <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                          {formatPrice(order.total)}
+                          {formatPrice(order.totalAmount)}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`badge ${
-                            order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                            order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {order.status}
+                          <span className={`badge ${getStatusColor(order.status)}`}>
+                            {getStatusLabel(order.status)}
                           </span>
                         </td>
                       </tr>

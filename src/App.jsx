@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Layout Components
@@ -33,10 +34,11 @@ import NotFound from './pages/NotFound';
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <Routes>
+      <ToastProvider>
+        <AuthProvider>
+          <CartProvider>
+            <WishlistProvider>
+              <Routes>
               {/* Auth Routes (No Layout) */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
@@ -103,12 +105,13 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                <Route path="*" element={<NotFound />} />
+                  <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
-          </WishlistProvider>
-        </CartProvider>
-      </AuthProvider>
+            </WishlistProvider>
+          </CartProvider>
+        </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

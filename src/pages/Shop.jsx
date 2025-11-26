@@ -46,8 +46,8 @@ const Shop = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Shop</h1>
-        <p className="text-gray-600">Discover amazing products from UNKLAB</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">Belanja</h1>
+        <p className="text-gray-600">Temukan produk terbaik dari UNKLAB Store</p>
       </div>
 
       {/* Search Bar */}
@@ -55,7 +55,7 @@ const Shop = () => {
         <div className="relative max-w-2xl">
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Cari produk..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input-field pl-12"
@@ -82,13 +82,13 @@ const Shop = () => {
           <div className="card p-6 sticky top-24 space-y-6">
             {/* Price Range */}
             <div>
-              <h3 className="font-semibold text-gray-900 mb-4">Price Range</h3>
+              <h3 className="font-semibold text-gray-900 mb-4">Rentang Harga</h3>
               <div className="space-y-2">
                 {[
-                  { value: 'all', label: 'All Prices' },
-                  { value: 'low', label: 'Under Rp 100K' },
+                  { value: 'all', label: 'Semua Harga' },
+                  { value: 'low', label: 'Di bawah Rp 100K' },
                   { value: 'mid', label: 'Rp 100K - 200K' },
-                  { value: 'high', label: 'Above Rp 200K' },
+                  { value: 'high', label: 'Di atas Rp 200K' },
                 ].map((option) => (
                   <label key={option.value} className="flex items-center space-x-3 cursor-pointer">
                     <input
@@ -111,7 +111,7 @@ const Shop = () => {
         <div className="flex-1">
           <div className="mb-6 flex items-center justify-between">
             <p className="text-gray-600">
-              {loading ? 'Loading...' : `${products.length} products found`}
+              {loading ? 'Memuat...' : `${products.length} produk ditemukan`}
             </p>
           </div>
 
@@ -143,8 +143,8 @@ const Shop = () => {
                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
                 />
               </svg>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-              <p className="text-gray-600">Try adjusting your filters or search query</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Produk tidak ditemukan</h3>
+              <p className="text-gray-600">Coba ubah filter atau kata kunci pencarian</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -160,5 +160,3 @@ const Shop = () => {
 };
 
 export default Shop;
-
-

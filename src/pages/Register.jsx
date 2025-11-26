@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const Register = () => {
   const navigate = useNavigate();
   const { register } = useAuth();
+  const toast = useToast();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -24,11 +26,13 @@ const Register = () => {
     // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Password tidak cocok');
+      toast.warning('Password tidak cocok');
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Password minimal 6 karakter');
+      toast.warning('Password minimal 6 karakter');
       return;
     }
 
@@ -38,9 +42,11 @@ const Register = () => {
     const result = await register(userData);
 
     if (result.success) {
+      toast.success('Registrasi berhasil! Selamat datang! 🎉');
       navigate('/');
     } else {
       setError(result.error || 'Registrasi gagal. Silakan coba lagi.');
+      toast.error(result.error || 'Registrasi gagal');
     }
 
     setLoading(false);
@@ -198,4 +204,3 @@ const Register = () => {
 };
 
 export default Register;
-
