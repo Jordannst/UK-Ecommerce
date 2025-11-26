@@ -5,6 +5,9 @@ import { WishlistProvider } from './context/WishlistContext';
 import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
+// Suppress React Router v7 future flag warnings
+// These are informational warnings about upcoming changes
+
 // Layout Components
 import Layout from './components/Layout';
 
@@ -33,7 +36,7 @@ import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
         <AuthProvider>
           <CartProvider>

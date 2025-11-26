@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import orderService from '../services/orderService';
+import paymentService from '../services/paymentService';
 
 const OrderSuccess = () => {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   useEffect(() => {
     loadOrder();
+    // Auto-check status saat page load (polling beberapa kali)
+    checkPaymentStatusWithPolling();
   }, [orderId]);
 
   const loadOrder = async () => {
@@ -22,6 +26,66 @@ const OrderSuccess = () => {
     }
   };
 
+  const checkPaymentStatusWithPolling = async () => {
+    // Polling status beberapa kali untuk memastikan status terupdate
+    for (let i = 0; i < 3; i++) {
+      try {
+        setCheckingStatus(true);
+        console.log(`🔍 Checking payment status (attempt ${i + 1}/3) for orderId: ${orderId}`);
+        
+        const status = await paymentService.checkStatus(orderId);
+        
+        console.log(`📥 Payment status response:`, {
+          orderId: status.orderId,
+          orderNumber: status.orderNumber,
+          orderStatus: status.orderStatus,
+          paymentStatus: status.paymentStatus,
+          paymentType: status.paymentType,
+          midtransStatus: status.midtransStatus?.transaction_status,
+        });
+        
+        // Update order state dengan data terbaru dari status check
+        if (status) {
+          setOrder(prevOrder => ({
+            ...prevOrder,
+            status: status.orderStatus || prevOrder?.status,
+            paymentStatus: status.paymentStatus || prevOrder?.paymentStatus,
+            paymentType: status.paymentType || prevOrder?.paymentType,
+            paidAt: status.paidAt || prevOrder?.paidAt,
+          }));
+        }
+        
+        // Reload order untuk mendapatkan data terbaru
+        await loadOrder();
+        
+        // Jika sudah paid, stop polling
+        if (status && (status.paymentStatus === 'paid' || status.orderStatus === 'processing')) {
+          console.log('✅ Status updated to paid!', {
+            paymentStatus: status.paymentStatus,
+            orderStatus: status.orderStatus,
+          });
+          break;
+        } else {
+          console.log(`⏳ Status masih ${status?.paymentStatus || 'unknown'}, akan check lagi...`);
+        }
+        
+        // Wait 2 seconds before next check
+        if (i < 2) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      } catch (err) {
+        console.error('❌ Error checking payment status:', err);
+        console.error('   Error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+      } finally {
+        setCheckingStatus(false);
+      }
+    }
+  };
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -30,7 +94,12 @@ const OrderSuccess = () => {
     }).format(price);
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (status, paymentStatus) => {
+    // Jika sudah paid tapi masih pending, artinya menunggu admin approve
+    if (status === 'pending' && paymentStatus === 'paid') {
+      return 'Menunggu Konfirmasi Admin';
+    }
+    
     const labels = {
       pending: 'Menunggu Pembayaran',
       processing: 'Diproses',
@@ -38,6 +107,36 @@ const OrderSuccess = () => {
       cancelled: 'Dibatalkan',
     };
     return labels[status] || status;
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-yellow-100 text-yellow-700',
+      processing: 'bg-blue-100 text-blue-700',
+      completed: 'bg-green-100 text-green-700',
+      cancelled: 'bg-red-100 text-red-700',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  const getPaymentStatusLabel = (status) => {
+    const labels = {
+      pending: 'Belum Bayar',
+      paid: 'Sudah Bayar',
+      expired: 'Kadaluarsa',
+      cancelled: 'Dibatalkan',
+    };
+    return labels[status] || status;
+  };
+
+  const getPaymentStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-amber-100 text-amber-700',
+      paid: 'bg-green-100 text-green-700',
+      expired: 'bg-gray-100 text-gray-700',
+      cancelled: 'bg-red-100 text-red-700',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
   };
 
   if (loading) {
@@ -69,9 +168,32 @@ const OrderSuccess = () => {
                 <span className="text-gray-600">Nomor Pesanan:</span>
                 <span className="font-medium text-unklab-blue">{order.orderNumber}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-gray-600">Status:</span>
-                <span className="badge bg-yellow-100 text-yellow-700">{getStatusLabel(order.status)}</span>
+                <div className="flex items-center gap-2">
+                  <span className={`badge ${getStatusColor(order.status)}`}>
+                    {getStatusLabel(order.status, order.paymentStatus)}
+                  </span>
+                  {order.paymentStatus && (
+                    <span className={`badge ${getPaymentStatusColor(order.paymentStatus)}`}>
+                      {getPaymentStatusLabel(order.paymentStatus)}
+                    </span>
+                  )}
+                  {order.status === 'pending' && order.paymentStatus === 'paid' && (
+                    <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                      ⏳ Menunggu konfirmasi admin
+                    </span>
+                  )}
+                  {order.status === 'pending' && (
+                    <button
+                      onClick={checkPaymentStatusWithPolling}
+                      disabled={checkingStatus}
+                      className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 disabled:opacity-50"
+                    >
+                      {checkingStatus ? 'Memeriksa...' : '🔄 Cek Status'}
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Metode Pembayaran:</span>

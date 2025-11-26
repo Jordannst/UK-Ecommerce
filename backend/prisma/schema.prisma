@@ -98,6 +98,14 @@ model Order {
   totalAmount   Float
   paymentMethod String?
   
+  // Midtrans Payment Fields
+  paymentStatus   String?     @default("pending") // pending, paid, expired, cancelled, refund
+  snapToken       String?     // Midtrans Snap Token
+  snapUrl         String?     // Midtrans Snap Redirect URL
+  transactionId   String?     // Midtrans Transaction ID
+  paymentType     String?     // credit_card, bank_transfer, gopay, etc
+  paidAt          DateTime?   // Waktu pembayaran berhasil
+  
   // Shipping details
   shippingName    String
   shippingPhone   String

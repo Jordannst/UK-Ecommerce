@@ -65,21 +65,32 @@ Platform e-commerce modern untuk kampus UNKLAB yang dibangun dengan **React + Vi
 
 ---
 
-## 🚀 Quick Start (5 Steps)
+## 🚀 Quick Start
 
-### 1️⃣ Clone Repository
+### 📋 Checklist Prerequisites
+
+Sebelum mulai, pastikan sudah menginstall:
+- [ ] **Node.js** v18+ ([Download](https://nodejs.org/))
+- [ ] **PostgreSQL** v14+ ([Download](https://www.postgresql.org/download/))
+- [ ] **Git** (optional, untuk clone repo)
+
+---
+
+### 🔧 Setup Awal (Hanya Sekali)
+
+#### 1️⃣ Clone Repository
 ```bash
 git clone <repository-url>
 cd frontend-
 ```
 
-### 2️⃣ Install Dependencies
+#### 2️⃣ Install Dependencies
 ```bash
 # Install frontend & backend dependencies
 npm run setup
 ```
 
-### 3️⃣ Setup PostgreSQL Database
+#### 3️⃣ Setup PostgreSQL Database
 
 **Install PostgreSQL** (jika belum):
 - 📖 **Windows Guide**: Lihat `INSTALL_POSTGRESQL_WINDOWS.md`
@@ -101,7 +112,7 @@ CREATE DATABASE unklab_ecommerce;
 \q
 ```
 
-### 4️⃣ Setup Cloudinary & Environment Variables
+#### 4️⃣ Setup Cloudinary & Environment Variables
 
 **A. Get Cloudinary Credentials:**
 1. Sign up: https://cloudinary.com/users/register/free
@@ -123,12 +134,17 @@ JWT_SECRET=unklab_ecommerce_secret_key_2024_very_secure
 JWT_EXPIRES_IN=7d
 
 # CORS Configuration
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:3000
 
 # Cloudinary Configuration (PENTING!)
 CLOUDINARY_CLOUD_NAME=your_cloud_name_here
 CLOUDINARY_API_KEY=your_api_key_here
 CLOUDINARY_API_SECRET=your_api_secret_here
+
+# Midtrans Configuration (Optional - untuk payment)
+MIDTRANS_SERVER_KEY=your_midtrans_server_key
+MIDTRANS_CLIENT_KEY=your_midtrans_client_key
+MIDTRANS_IS_PRODUCTION=false
 ```
 
 **⚠️ IMPORTANT:** 
@@ -136,7 +152,7 @@ CLOUDINARY_API_SECRET=your_api_secret_here
 - Ganti semua `CLOUDINARY_*` dengan credentials dari dashboard Cloudinary
 - **JANGAN commit file `.env` ke Git!** (sudah ada di `.gitignore`)
 
-### 5️⃣ Setup Database & Run Application
+#### 5️⃣ Setup Database Schema & Seed Data
 
 ```bash
 cd backend
@@ -147,20 +163,81 @@ npx prisma generate
 # Run migrations (create tables)
 npx prisma migrate dev --name init
 
-# Seed database dengan data dummy
+# Seed database dengan data awal (users, categories, products)
 npm run seed
 
 # Kembali ke root folder
 cd ..
+```
 
-# Run frontend + backend bersamaan
+**Output yang diharapkan:**
+```
+✅ Database seeding completed successfully!
+📊 Summary:
+  - Users: 2
+  - Categories: 4
+  - Products: 12
+```
+
+---
+
+### ▶️ Menjalankan Aplikasi
+
+#### Untuk Development Harian
+
+Setelah setup awal selesai, setiap kali development cukup jalankan:
+
+```bash
 npm run dev:all
 ```
 
-**🎉 Done!** Aplikasi akan berjalan di:
-- 🌐 **Frontend**: http://localhost:5173
+**Aplikasi akan berjalan di:**
+- 🌐 **Frontend**: http://localhost:3000
 - 🔧 **Backend API**: http://localhost:3001
 - 📊 **API Health Check**: http://localhost:3001/api/health
+
+**Catatan:**
+- `npm run seed` **TIDAK perlu** dijalankan setiap kali
+- Seed hanya untuk setup awal atau reset data
+- `npm run dev:all` sudah cukup untuk development harian
+
+#### Jika Ada Masalah Port
+
+Jika port 3000 atau 3001 sudah dipakai:
+
+```bash
+npm run dev:all:safe
+```
+
+Script ini akan otomatis membebaskan port sebelum start.
+
+---
+
+### 📝 Urutan Lengkap (Summary)
+
+**Setup Awal (Hanya Sekali):**
+1. Clone repository
+2. Install dependencies: `npm run setup`
+3. Setup PostgreSQL & buat database
+4. Setup Cloudinary & buat file `backend/.env`
+5. Setup database schema & seed: `cd backend && npx prisma generate && npx prisma migrate dev --name init && npm run seed && cd ..`
+
+**Development Harian:**
+```bash
+npm run dev:all
+```
+
+**Setup Ulang Database (Jika Perlu):**
+```bash
+cd backend
+npx prisma migrate reset  # ⚠️ Hapus semua data
+npm run seed              # Seed ulang
+cd ..
+```
+
+---
+
+📖 **Panduan Lengkap**: Lihat `CARA_RUN.md` untuk detail lebih lanjut.
 
 ---
 
@@ -390,10 +467,14 @@ Save URL to PostgreSQL Database
 
 ```bash
 # Development
-npm run dev              # Run frontend only (Vite)
+npm run dev              # Run frontend only (Vite) - Port 3000
 npm run frontend         # Alias for npm run dev
-npm run backend          # Run backend only (Express + Nodemon)
-npm run dev:all          # Run frontend + backend concurrently
+npm run backend          # Run backend only (Express + Nodemon) - Port 3001
+npm run dev:all          # Run frontend + backend concurrently (Recommended)
+npm run dev:all:safe     # Run dev:all dengan auto-kill port conflicts
+
+# Database
+npm run seed             # Seed database dengan data awal (dari root)
 
 # Setup
 npm run setup            # Install all dependencies (root + backend)
@@ -456,6 +537,8 @@ curl -X POST http://localhost:3001/api/auth/login \
 
 ## 🐛 Troubleshooting
 
+> 📖 **Panduan Lengkap**: Lihat `TROUBLESHOOTING.md` untuk troubleshooting lebih detail.
+
 ### "Can't reach database server"
 
 **Cause:** PostgreSQL tidak running atau credentials salah
@@ -475,6 +558,33 @@ sudo systemctl start postgresql
 psql -U postgres -d unklab_ecommerce
 ```
 
+### "Port 3001 already in use" atau "Port 3000 already in use"
+
+**Quick Fix:**
+```bash
+npm run dev:all:safe
+```
+
+**Manual Fix:**
+```bash
+# Windows
+netstat -ano | findstr :3001
+taskkill /PID <PID> /F
+
+# macOS/Linux
+lsof -ti:3001 | xargs kill -9
+```
+
+### Error 404 pada `/api/auth/register` atau `/api/auth/login`
+
+**Cause:** Backend tidak berjalan
+
+**Fix:**
+1. Pastikan backend start di port 3001 (cek terminal output)
+2. Test: `http://localhost:3001/api/health` harus return JSON
+3. Jika return HTML, berarti port 3001 masih dipakai frontend
+4. Gunakan `npm run dev:all:safe` untuk membebaskan port
+
 ### "Prisma Client not found"
 
 **Fix:**
@@ -490,18 +600,6 @@ npx prisma generate
 2. Update `backend/.env` dengan credentials yang benar
 3. Restart backend server
 4. Test upload image
-
-### "Port 3001 already in use"
-
-**Fix:**
-```bash
-# Windows
-netstat -ano | findstr :3001
-taskkill /PID <PID> /F
-
-# macOS/Linux
-lsof -ti:3001 | xargs kill -9
-```
 
 ### Database Schema Mismatch
 
@@ -520,6 +618,10 @@ npm run seed             # Re-seed database
 - [ ] File size < 5MB
 - [ ] File format: JPG/PNG/WEBP
 - [ ] Check backend logs untuk error messages
+
+---
+
+📖 **Lebih banyak troubleshooting?** → Lihat `TROUBLESHOOTING.md`
 
 ---
 
@@ -573,8 +675,9 @@ npm run seed             # Re-seed database
 
 ## 📚 Additional Documentation
 
-- 📖 **Quick Start**: `QUICK_START.md` - Panduan cepat 5 langkah
-- 🗄️ **PostgreSQL Installation**: `INSTALL_POSTGRESQL_WINDOWS.md`
+- 📖 **Cara Menjalankan**: `CARA_RUN.md` - Panduan lengkap cara setup dan run aplikasi
+- 🔧 **Troubleshooting**: `TROUBLESHOOTING.md` - Panduan troubleshooting masalah umum
+- 🗄️ **PostgreSQL Installation**: `INSTALL_POSTGRESQL_WINDOWS.md` - Panduan install PostgreSQL di Windows
 - 🔧 **API Documentation**: Lihat section API Endpoints di atas
 - 🎨 **Component Guide**: Check `src/components/` untuk examples
 
@@ -613,9 +716,11 @@ Platform ini dikembangkan untuk **Universitas Klabat (UNKLAB)** sebagai solusi e
 
 Jika ada pertanyaan atau masalah:
 1. Check **Troubleshooting** section di atas
-2. Review documentation files
-3. Check existing GitHub Issues
-4. Create new Issue dengan template
+2. 📖 Lihat **`TROUBLESHOOTING.md`** untuk panduan troubleshooting lengkap
+3. 📖 Lihat **`CARA_RUN.md`** untuk panduan cara menjalankan aplikasi
+4. Review documentation files lainnya
+5. Check existing GitHub Issues
+6. Create new Issue dengan template
 
 ---
 

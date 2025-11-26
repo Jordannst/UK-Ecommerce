@@ -4,6 +4,12 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Logging middleware untuk debug
+router.use((req, res, next) => {
+  console.log(` Auth route: ${req.method} ${req.path}`);
+  next();
+});
+
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
