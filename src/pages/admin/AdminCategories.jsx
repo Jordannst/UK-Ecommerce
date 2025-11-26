@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import categoryService from '../../services/categoryService';
+import { useToast } from '../../context/ToastContext';
+import { generateSlug } from '../../utils/helpers';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 const AdminCategories = () => {
+  const toast = useToast();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, categoryId: null });
   const [formData, setFormData] = useState({
     name: '',
+    slug: '',
     description: '',
     icon: '📦',
   });
@@ -24,6 +30,7 @@ const AdminCategories = () => {
       setCategories(data);
     } catch (error) {
       console.error('Error loading categories:', error);
+      toast.error('Gagal memuat kategori');
     } finally {
       setLoading(false);
     }
@@ -37,11 +44,22 @@ const AdminCategories = () => {
       setEditingCategory(null);
       setFormData({
         name: '',
+        slug: '',
         description: '',
         icon: '📦',
       });
     }
     setShowModal(true);
+  };
+
+  // Auto-generate slug when name changes (only for new categories)
+  const handleNameChange = (e) => {
+    const name = e.target.value;
+    setFormData(prev => ({
+      ...prev,
+      name,
+      slug: editingCategory ? prev.slug : generateSlug(name) // Only auto-generate for new categories
+    }));
   };
 
   const handleCloseModal = () => {
@@ -53,28 +71,43 @@ const AdminCategories = () => {
     e.preventDefault();
     
     try {
+      // Ensure slug is generated if empty
+      const categoryData = {
+        ...formData,
+        slug: formData.slug || generateSlug(formData.name)
+      };
+
       if (editingCategory) {
-        await categoryService.updateCategory(editingCategory.id, formData);
+        await categoryService.updateCategory(editingCategory.id, categoryData);
+        toast.success('Kategori berhasil diperbarui! ✅');
       } else {
-        await categoryService.createCategory(formData);
+        await categoryService.createCategory(categoryData);
+        toast.success('Kategori berhasil ditambahkan! 🎉');
       }
 
       handleCloseModal();
       loadCategories();
     } catch (error) {
       console.error('Error saving category:', error);
-      alert('Failed to save category');
+      toast.error(error.response?.data?.message || 'Gagal menyimpan kategori');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this category?')) {
+  const handleDelete = (id) => {
+    setDeleteConfirm({ show: true, categoryId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (deleteConfirm.categoryId) {
       try {
-        await categoryService.deleteCategory(id);
+        await categoryService.deleteCategory(deleteConfirm.categoryId);
+        toast.success('Kategori berhasil dihapus');
         loadCategories();
       } catch (error) {
         console.error('Error deleting category:', error);
-        alert('Failed to delete category');
+        toast.error(error.response?.data?.message || 'Gagal menghapus kategori');
+      } finally {
+        setDeleteConfirm({ show: false, categoryId: null });
       }
     }
   };
@@ -156,10 +189,23 @@ const AdminCategories = () => {
                   type="text"
                   required
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={handleNameChange}
                   className="input-field"
                   placeholder="Elektronik"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Slug *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: generateSlug(e.target.value) })}
+                  className="input-field"
+                  placeholder="elektronik"
+                />
+                <p className="text-xs text-gray-500 mt-1">URL-friendly identifier (auto-generated dari nama)</p>
               </div>
 
               <div>
@@ -203,6 +249,18 @@ const AdminCategories = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.show}
+        onClose={() => setDeleteConfirm({ show: false, categoryId: null })}
+        onConfirm={confirmDelete}
+        title="Hapus Kategori"
+        message="Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        type="danger"
+      />
     </div>
   );
 };

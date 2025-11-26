@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import productService from '../../services/productService';
+import categoryService from '../../services/categoryService';
 import { useToast } from '../../context/ToastContext';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
 const AdminProducts = () => {
   const toast = useToast();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -15,6 +17,7 @@ const AdminProducts = () => {
     name: '',
     description: '',
     price: '',
+    categoryId: '',
     faculty: '',
     image: '',
     stock: '',
@@ -26,6 +29,7 @@ const AdminProducts = () => {
 
   useEffect(() => {
     loadData();
+    loadCategories();
   }, []);
 
   const loadData = async () => {
@@ -35,15 +39,33 @@ const AdminProducts = () => {
       setProducts(productsData);
     } catch (error) {
       console.error('Error loading data:', error);
+      toast.error('Gagal memuat produk');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCategories = async () => {
+    try {
+      const categoriesData = await categoryService.getAllCategories();
+      setCategories(categoriesData);
+      // Set default category jika belum ada yang dipilih
+      if (categoriesData.length > 0 && !formData.categoryId) {
+        setFormData(prev => ({ ...prev, categoryId: categoriesData[0].id }));
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast.error('Gagal memuat kategori');
     }
   };
 
   const handleOpenModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      setFormData(product);
+      setFormData({
+        ...product,
+        categoryId: product.categoryId || product.category?.id || ''
+      });
       setImagePreview(product.image || '');
       setImageFile(null);
     } else {
@@ -52,6 +74,7 @@ const AdminProducts = () => {
         name: '',
         description: '',
         price: '',
+        categoryId: categories.length > 0 ? categories[0].id : '',
         faculty: '',
         image: '',
         stock: '',
@@ -100,14 +123,19 @@ const AdminProducts = () => {
     e.preventDefault();
     
     try {
+      // Validasi categoryId
+      if (!formData.categoryId) {
+        toast.warning('Harap pilih kategori produk');
+        return;
+      }
+
       // Create FormData untuk file upload
       const formDataToSend = new FormData();
       formDataToSend.append('name', formData.name);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('price', formData.price);
       formDataToSend.append('stock', formData.stock);
-      // Set default categoryId to 1 (Fashion) - adjust based on your database
-      formDataToSend.append('categoryId', '1');
+      formDataToSend.append('categoryId', formData.categoryId);
       formDataToSend.append('faculty', formData.faculty || '');
       
       // Append image file jika ada
@@ -151,7 +179,10 @@ const AdminProducts = () => {
         loadData();
       } catch (error) {
         console.error('Error deleting product:', error);
-        toast.error('Gagal menghapus produk');
+        const errorMessage = error.response?.data?.message || 'Gagal menghapus produk';
+        toast.error(errorMessage);
+      } finally {
+        setDeleteConfirm({ show: false, product: null });
       }
     }
   };
@@ -289,6 +320,26 @@ const AdminProducts = () => {
                 ></textarea>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Kategori *</label>
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="input-field"
+                >
+                  <option value="">Pilih Kategori</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.icon} {category.name}
+                    </option>
+                  ))}
+                </select>
+                {categories.length === 0 && (
+                  <p className="text-xs text-red-600 mt-1">Tidak ada kategori tersedia. Silakan buat kategori terlebih dahulu.</p>
+                )}
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Harga (Rp) *</label>
@@ -314,8 +365,6 @@ const AdminProducts = () => {
                   />
                 </div>
               </div>
-
-   
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Gambar Produk *</label>

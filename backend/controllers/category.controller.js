@@ -89,22 +89,35 @@ export const getCategoryBySlug = async (req, res, next) => {
   }
 };
 
+// Helper function to generate slug
+const generateSlug = (text) => {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+};
+
 // Create category (Admin only)
 export const createCategory = async (req, res, next) => {
   try {
     const { name, slug, description, icon, image } = req.body;
 
-    if (!name || !slug) {
+    if (!name) {
       return res.status(400).json({
         success: false,
-        message: 'Nama dan slug wajib diisi'
+        message: 'Nama kategori wajib diisi'
       });
     }
+
+    // Auto-generate slug if not provided
+    const finalSlug = slug || generateSlug(name);
 
     const category = await prisma.category.create({
       data: {
         name,
-        slug,
+        slug: finalSlug,
         description,
         icon,
         image
@@ -117,6 +130,13 @@ export const createCategory = async (req, res, next) => {
       data: category
     });
   } catch (error) {
+    // Handle unique constraint violation (duplicate slug)
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'Slug sudah digunakan. Silakan gunakan slug yang berbeda.'
+      });
+    }
     next(error);
   }
 };
@@ -127,11 +147,17 @@ export const updateCategory = async (req, res, next) => {
     const { id } = req.params;
     const { name, slug, description, icon, image } = req.body;
 
+    // If name is updated but slug is not, auto-generate slug from name
+    let finalSlug = slug;
+    if (name && !slug) {
+      finalSlug = generateSlug(name);
+    }
+
     const category = await prisma.category.update({
       where: { id: parseInt(id) },
       data: {
         ...(name && { name }),
-        ...(slug && { slug }),
+        ...(finalSlug && { slug: finalSlug }),
         ...(description !== undefined && { description }),
         ...(icon !== undefined && { icon }),
         ...(image !== undefined && { image })
@@ -148,6 +174,13 @@ export const updateCategory = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Kategori tidak ditemukan'
+      });
+    }
+    // Handle unique constraint violation (duplicate slug)
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'Slug sudah digunakan. Silakan gunakan slug yang berbeda.'
       });
     }
     next(error);

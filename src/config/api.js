@@ -56,6 +56,11 @@ api.interceptors.response.use(
         data: error.response?.data,
         message: error.message
       });
+      
+      // Log error message for debugging
+      if (error.response?.data?.message) {
+        console.error('Error message:', error.response.data.message);
+      }
     }
     
     return Promise.reject(error);
