@@ -58,8 +58,8 @@ Platform e-commerce modern untuk kampus UNKLAB yang dibangun dengan **React + Vi
 
 | Software | Version | Download Link | Required |
 |----------|---------|---------------|----------|
-| **Node.js** | v18+ | [nodejs.org](https://nodejs.org/) | 
-| **PostgreSQL** | v14+ | [postgresql.org](https://www.postgresql.org/download/) | 
+| **Node.js** | v18+ | [nodejs.org](https://nodejs.org/) | ✅ |
+| **PostgreSQL** | v14+ | [postgresql.org](https://www.postgresql.org/download/) | ✅ |
 | **Cloudinary** | Free Account | [cloudinary.com/signup](https://cloudinary.com/users/register/free) | ✅ |
 | **Git** | Latest | [git-scm.com](https://git-scm.com/) | Recommended |
 
