@@ -38,7 +38,10 @@ const Shop = () => {
 
       // Filter by category
       if (selectedCategory !== 'All') {
-        data = data.filter((p) => p.category === selectedCategory);
+        data = data.filter((p) => {
+          const categoryName = p.category?.name || p.category;
+          return categoryName === selectedCategory;
+        });
       }
 
       // Filter by price range

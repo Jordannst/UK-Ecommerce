@@ -209,7 +209,7 @@ const AdminProducts = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">{product.category?.name || product.category || 'Uncategorized'}</td>
                         <td className="px-6 py-4 text-sm font-medium text-gray-900">
                           {formatPrice(product.price)}
                         </td>

@@ -5,8 +5,7 @@ import { WishlistProvider } from './context/WishlistContext';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Layout Components
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import Layout from './components/Layout';
 
 // Pages
 import Home from './pages/Home';
@@ -65,58 +64,47 @@ function App() {
               } />
 
               {/* Main Routes (With Navbar/Footer) */}
-              <Route
-                path="/*"
-                element={
-                  <div className="flex flex-col min-h-screen">
-                    <Navbar />
-                    <main className="flex-1">
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route path="/shop" element={<Shop />} />
-                        <Route path="/product/:id" element={<ProductDetail />} />
-                        <Route path="/categories" element={<Categories />} />
-                        <Route path="/about" element={<About />} />
-                        
-                        {/* Protected Routes - Require Login */}
-                        <Route path="/cart" element={
-                          <ProtectedRoute>
-                            <Cart />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/checkout" element={
-                          <ProtectedRoute>
-                            <Checkout />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/order-success/:orderId" element={
-                          <ProtectedRoute>
-                            <OrderSuccess />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard" element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/dashboard/orders" element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/wishlist" element={
-                          <ProtectedRoute>
-                            <Wishlist />
-                          </ProtectedRoute>
-                        } />
-                        
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-                    <Footer />
-                  </div>
-                }
-              />
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Home />} />
+                <Route path="shop" element={<Shop />} />
+                <Route path="product/:id" element={<ProductDetail />} />
+                <Route path="categories" element={<Categories />} />
+                <Route path="about" element={<About />} />
+                
+                {/* Protected Routes - Require Login */}
+                <Route path="cart" element={
+                  <ProtectedRoute>
+                    <Cart />
+                  </ProtectedRoute>
+                } />
+                <Route path="checkout" element={
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
+                } />
+                <Route path="order-success/:orderId" element={
+                  <ProtectedRoute>
+                    <OrderSuccess />
+                  </ProtectedRoute>
+                } />
+                <Route path="dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="dashboard/orders" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="wishlist" element={
+                  <ProtectedRoute>
+                    <Wishlist />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="*" element={<NotFound />} />
+              </Route>
             </Routes>
           </WishlistProvider>
         </CartProvider>
