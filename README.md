@@ -1,6 +1,6 @@
-# 🛍️ UNKLAB Campus E-Commerce Platform
+# 🛍️ Starg E-Commerce Platform
 
-Platform e-commerce modern untuk kampus UNKLAB yang dibangun dengan **React + Vite + Tailwind CSS** untuk frontend dan **Node.js + Express + PostgreSQL + Prisma** untuk backend.
+Platform e-commerce modern yang dibangun dengan **React + Vite + Tailwind CSS** untuk frontend dan **Node.js + Express + PostgreSQL + Prisma** untuk backend.
 ---
 
 ## 📋 Fitur Utama
@@ -103,7 +103,7 @@ npm run setup
 psql -U postgres
 
 # Create database
-CREATE DATABASE unklab_ecommerce;
+CREATE DATABASE starg_ecommerce;
 
 # Verify
 \l
@@ -123,14 +123,14 @@ CREATE DATABASE unklab_ecommerce;
 
 ```env
 # Database Configuration
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/unklab_ecommerce?schema=public"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/starg_ecommerce?schema=public"
 
 # Server Configuration
 PORT=3001
 NODE_ENV=development
 
 # JWT Configuration
-JWT_SECRET=unklab_ecommerce_secret_key_2024_very_secure
+JWT_SECRET=starg_ecommerce_secret_key_2024_very_secure
 JWT_EXPIRES_IN=7d
 
 # CORS Configuration
@@ -245,7 +245,7 @@ cd ..
 
 ### Admin Account
 ```
-Email: admin@unklab.ac.id
+Email: admin@starg.com
 Password: admin123
 ```
 **Akses:**
@@ -256,7 +256,7 @@ Password: admin123
 
 ### User Account
 ```
-Email: john@student.unklab.ac.id
+Email: john@starg.com
 Password: password123
 ```
 **Akses:**
@@ -451,7 +451,7 @@ Save URL to PostgreSQL Database
 ```
 
 ### Configuration
-- **Folder**: `unklab-ecommerce/products/`
+- **Folder**: `starg-ecommerce/products/`
 - **Max Size**: 5MB
 - **Formats**: JPG, JPEG, PNG, WEBP
 - **Auto Resize**: Max 1000x1000px
@@ -530,7 +530,7 @@ curl http://localhost:3001/api/products
 # Login
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@unklab.ac.id","password":"admin123"}'
+  -d '{"email":"admin@starg.com","password":"admin123"}'
 ```
 
 ---
@@ -555,7 +555,7 @@ brew services start postgresql@18
 sudo systemctl start postgresql
 
 # Test connection
-psql -U postgres -d unklab_ecommerce
+psql -U postgres -d starg_ecommerce
 ```
 
 ### "Port 3001 already in use" atau "Port 3000 already in use"
@@ -701,7 +701,7 @@ This project is licensed under the MIT License.
 
 ## 👥 Team & Credits
 
-Platform ini dikembangkan untuk **Universitas Klabat (UNKLAB)** sebagai solusi e-commerce kampus.
+Platform e-commerce modern untuk berbagai kebutuhan bisnis.
 
 ### Technologies Used
 - React Team - React Library
@@ -745,7 +745,7 @@ Jika ada pertanyaan atau masalah:
 
 <div align="center">
 
-**Dibuat dengan ❤️ untuk UNKLAB Community**
+**Dibuat dengan ❤️ untuk Starg Community**
 
 [⬆ Back to Top](#-unklab-campus-e-commerce-platform)
 

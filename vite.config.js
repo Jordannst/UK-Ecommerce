@@ -25,11 +25,10 @@ export default defineConfig({
     }
   ],
   server: {
-    port: parseInt(process.env.VITE_PORT || process.env.PORT || '3000', 10),
-    strictPort: false, // Allow port switching if port is not available
-    // Note: If port 3000 is busy, Vite will try 3001 next by default
-    // We prevent this in the plugin above - it will exit with error
-    // Better solution: Free port 3000 before starting (via prefrontend script)
+    port: 3000, // Always use port 3000 for frontend
+    strictPort: true, // Don't allow port switching - must use port 3000
+    // Important: Port 3000 must be available for frontend
+    // Backend uses port 3001, so no conflict
     host: true,
   },
 })

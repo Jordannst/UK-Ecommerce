@@ -47,7 +47,7 @@ const Shop = () => {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Belanja</h1>
-        <p className="text-gray-600">Temukan produk terbaik dari UNKLAB Store</p>
+        <p className="text-gray-600">Temukan produk terbaik dari Starg</p>
       </div>
 
       {/* Search Bar */}
@@ -97,7 +97,7 @@ const Shop = () => {
                       value={option.value}
                       checked={priceRange === option.value}
                       onChange={(e) => setPriceRange(e.target.value)}
-                      className="w-4 h-4 text-unklab-blue focus:ring-unklab-blue"
+                      className="w-4 h-4 text-starg-pink focus:ring-starg-pink"
                     />
                     <span className="text-sm text-gray-700">{option.label}</span>
                   </label>

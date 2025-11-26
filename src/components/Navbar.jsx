@@ -42,12 +42,11 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-unklab-blue rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-starg-pink rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">U</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-unklab-blue">UNKLAB</span>
-                <span className="text-xs text-gray-500">Campus Store</span>
+                <span className="text-xl font-bold text-starg-pink">Starg</span>
               </div>
             </Link>
 
@@ -59,8 +58,8 @@ const Navbar = () => {
                   to={link.path}
                   className={`font-medium transition-colors duration-200 ${
                     isActive(link.path)
-                      ? 'text-unklab-blue'
-                      : 'text-gray-600 hover:text-unklab-blue'
+                      ? 'text-starg-pink'
+                      : 'text-gray-600 hover:text-starg-pink'
                   }`}
                 >
                   {link.name}
@@ -183,7 +182,7 @@ const Navbar = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       isActive(link.path)
-                        ? 'bg-unklab-light text-unklab-blue'
+                        ? 'bg-starg-pink-light text-starg-pink'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >

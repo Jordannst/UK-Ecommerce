@@ -198,7 +198,7 @@ const Dashboard = () => {
           <div className="card p-6 space-y-6">
             {/* Profile */}
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-unklab-blue to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
+              <div className="w-20 h-20 bg-gradient-to-br from-starg-pink to-pink-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                 <span className="text-2xl font-bold text-white">
                   {user?.name?.charAt(0) || 'U'}
                 </span>
@@ -211,7 +211,7 @@ const Dashboard = () => {
             <nav className="space-y-2 border-t border-gray-200 pt-6">
               <Link
                 to="/dashboard"
-                className="flex items-center space-x-3 px-4 py-2 rounded-lg bg-unklab-light text-unklab-blue font-medium"
+                className="flex items-center space-x-3 px-4 py-2 rounded-lg bg-starg-pink-light text-starg-pink font-medium"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -353,7 +353,7 @@ const Dashboard = () => {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-unklab-blue">
+                      <span className="font-bold text-starg-pink">
                         {formatPrice(order.totalAmount)}
                       </span>
                       <div className="flex items-center gap-2">
@@ -362,7 +362,7 @@ const Dashboard = () => {
                           <button
                             onClick={() => handleCheckStatus(order.id)}
                             disabled={checkingStatusId === order.id}
-                            className="px-3 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-200 transition-all disabled:opacity-50 flex items-center gap-2"
+                            className="px-3 py-2 bg-pink-100 text-pink-700 text-sm font-medium rounded-lg hover:bg-pink-200 transition-all disabled:opacity-50 flex items-center gap-2"
                             title="Cek status pembayaran terbaru"
                           >
                             {checkingStatusId === order.id ? (
@@ -406,7 +406,7 @@ const Dashboard = () => {
                         )}
                         <Link
                           to={`/order-success/${order.id}`}
-                          className="text-sm text-unklab-blue hover:underline"
+                          className="text-sm text-starg-pink hover:underline"
                         >
                           Lihat Detail →
                         </Link>

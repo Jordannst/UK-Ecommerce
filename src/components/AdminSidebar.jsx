@@ -47,8 +47,8 @@ const AdminSidebar = () => {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen p-6">
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-unklab-blue">Panel Admin</h2>
-        <p className="text-sm text-gray-500">Toko UNKLAB</p>
+        <h2 className="text-xl font-bold text-starg-pink">Panel Admin</h2>
+        <p className="text-sm text-gray-500">Toko Starg</p>
       </div>
 
       <nav className="space-y-2">
@@ -58,7 +58,7 @@ const AdminSidebar = () => {
             to={item.path}
             className={`flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
               isActive(item.path)
-                ? 'bg-unklab-blue text-white'
+                ? 'bg-starg-pink text-white'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >

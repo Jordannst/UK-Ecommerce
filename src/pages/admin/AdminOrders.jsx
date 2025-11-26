@@ -311,7 +311,7 @@ const AdminOrders = () => {
                   )}
                   <div className="flex justify-between pt-2 border-t border-gray-200 text-base">
                     <span className="font-semibold">Total:</span>
-                    <span className="font-bold text-unklab-blue">{formatPrice(selectedOrder.totalAmount)}</span>
+                    <span className="font-bold text-starg-pink">{formatPrice(selectedOrder.totalAmount)}</span>
                   </div>
                 </div>
               </div>

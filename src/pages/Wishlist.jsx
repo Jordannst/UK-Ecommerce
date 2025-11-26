@@ -128,13 +128,13 @@ const Wishlist = () => {
             <div className="space-y-3">
               <Link
                 to={`/product/${item.productId}`}
-                className="font-semibold text-gray-900 line-clamp-2 hover:text-unklab-blue transition-colors block"
+                className="font-semibold text-gray-900 line-clamp-2 hover:text-starg-pink transition-colors block"
               >
                 {item.name}
               </Link>
 
               <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-unklab-blue">
+                <span className="text-lg font-bold text-starg-pink">
                   {formatPrice(item.price)}
                 </span>
               </div>

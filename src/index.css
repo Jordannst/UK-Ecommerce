@@ -16,14 +16,14 @@ body {
 
 @layer components {
   .btn-primary {
-    @apply bg-unklab-blue text-white px-6 py-3 rounded-xl font-medium 
-           hover:bg-opacity-90 transition-all duration-200 
+    @apply bg-starg-pink text-white px-6 py-3 rounded-xl font-medium 
+           hover:bg-starg-pink-dark transition-all duration-200 
            hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
   }
   
   .btn-secondary {
-    @apply bg-white text-unklab-blue border-2 border-unklab-blue px-6 py-3 
-           rounded-xl font-medium hover:bg-unklab-light transition-all duration-200
+    @apply bg-white text-starg-pink border-2 border-starg-pink px-6 py-3 
+           rounded-xl font-medium hover:bg-starg-pink-light transition-all duration-200
            hover:shadow-md hover:scale-[1.02] active:scale-[0.98];
   }
   
@@ -39,7 +39,7 @@ body {
   
   .input-field {
     @apply w-full px-4 py-3 border border-gray-300 rounded-xl 
-           focus:ring-2 focus:ring-unklab-blue focus:border-transparent 
+           focus:ring-2 focus:ring-starg-pink focus:border-transparent 
            transition-all duration-200 outline-none;
   }
   
@@ -64,12 +64,12 @@ html {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #003366;
+  background: #F8BBD0;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #002244;
+  background: #F48FB1;
 }
 
 /* Animations */

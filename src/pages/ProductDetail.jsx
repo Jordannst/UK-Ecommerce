@@ -110,9 +110,9 @@ const ProductDetail = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Breadcrumb */}
       <nav className="flex items-center space-x-2 text-sm text-gray-600 mb-8">
-        <Link to="/" className="hover:text-unklab-blue">Beranda</Link>
+        <Link to="/" className="hover:text-starg-pink">Beranda</Link>
         <span>/</span>
-        <Link to="/shop" className="hover:text-unklab-blue">Belanja</Link>
+        <Link to="/shop" className="hover:text-starg-pink">Belanja</Link>
         <span>/</span>
         <span className="text-gray-900">{product.name}</span>
       </nav>
@@ -154,7 +154,7 @@ const ProductDetail = () => {
 
           <div className="border-t border-b border-gray-200 py-6 space-y-4">
             <div className="flex items-baseline space-x-4">
-              <span className="text-4xl font-bold text-unklab-blue">
+              <span className="text-4xl font-bold text-starg-pink">
                 {formatPrice(product.price)}
               </span>
             </div>
@@ -211,7 +211,7 @@ const ProductDetail = () => {
                 title={inWishlist ? 'Hapus dari wishlist' : 'Tambah ke wishlist'}
               >
                 <svg
-                  className={`w-6 h-6 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-unklab-blue'}`}
+                  className={`w-6 h-6 ${inWishlist ? 'fill-red-500 text-red-500' : 'text-starg-pink'}`}
                   fill={inWishlist ? 'currentColor' : 'none'}
                   stroke="currentColor"
                   viewBox="0 0 24 24"

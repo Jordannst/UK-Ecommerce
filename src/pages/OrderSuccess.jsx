@@ -156,7 +156,7 @@ const OrderSuccess = () => {
           </svg>
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Pesanan Berhasil Dibuat! 🎉</h1>
-        <p className="text-gray-600">Terima kasih telah berbelanja di UNKLAB Store</p>
+        <p className="text-gray-600">Terima kasih telah berbelanja di Starg</p>
       </div>
 
       {order && (
@@ -166,7 +166,7 @@ const OrderSuccess = () => {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-600">Nomor Pesanan:</span>
-                <span className="font-medium text-unklab-blue">{order.orderNumber}</span>
+                <span className="font-medium text-starg-pink">{order.orderNumber}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Status:</span>
@@ -201,7 +201,7 @@ const OrderSuccess = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Total Pembayaran:</span>
-                <span className="font-bold text-unklab-blue">{formatPrice(order.totalAmount)}</span>
+                <span className="font-bold text-starg-pink">{formatPrice(order.totalAmount)}</span>
               </div>
             </div>
           </div>

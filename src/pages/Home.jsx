@@ -77,14 +77,14 @@ const Home = () => {
 
       {/* Promo Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-gradient-to-r from-unklab-blue to-blue-900 rounded-3xl p-12 text-white text-center">
+        <div className="bg-gradient-to-r from-starg-pink to-pink-400 rounded-3xl p-12 text-white text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Penawaran Spesial untuk Mahasiswa UNKLAB
+            Penawaran Spesial untuk Pelanggan Starg
           </h2>
-          <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            Dapatkan diskon 15% untuk pembelian pertama. Gunakan kode: <span className="font-bold">UNKLAB2024</span>
+          <p className="text-lg text-pink-100 mb-8 max-w-2xl mx-auto">
+            Dapatkan diskon 15% untuk pembelian pertama. Gunakan kode: <span className="font-bold">STARG2024</span>
           </p>
-          <Link to="/shop" className="btn-primary bg-white text-unklab-blue hover:bg-gray-100 inline-block">
+          <Link to="/shop" className="btn-primary bg-white text-starg-pink hover:bg-gray-100 inline-block">
             Belanja Sekarang
           </Link>
         </div>
@@ -94,8 +94,8 @@ const Home = () => {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-unklab-light rounded-xl flex items-center justify-center mx-auto">
-              <svg className="w-8 h-8 text-unklab-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-starg-pink-light rounded-xl flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-starg-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
               </svg>
             </div>
@@ -104,8 +104,8 @@ const Home = () => {
           </div>
 
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-unklab-light rounded-xl flex items-center justify-center mx-auto">
-              <svg className="w-8 h-8 text-unklab-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-starg-pink-light rounded-xl flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-starg-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -114,8 +114,8 @@ const Home = () => {
           </div>
 
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-unklab-light rounded-xl flex items-center justify-center mx-auto">
-              <svg className="w-8 h-8 text-unklab-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-starg-pink-light rounded-xl flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-starg-pink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>

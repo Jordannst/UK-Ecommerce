@@ -83,7 +83,7 @@ const Cart = () => {
               </div>
               <div className="border-t border-gray-200 pt-3 flex justify-between text-base">
                 <span className="font-semibold">Total</span>
-                <span className="font-bold text-unklab-blue">{formatPrice(total)}</span>
+                <span className="font-bold text-starg-pink">{formatPrice(total)}</span>
               </div>
             </div>
 
@@ -93,7 +93,7 @@ const Cart = () => {
 
             <Link
               to="/shop"
-              className="text-center text-sm text-unklab-blue hover:underline block"
+              className="text-center text-sm text-starg-pink hover:underline block"
             >
               Lanjut Belanja
             </Link>

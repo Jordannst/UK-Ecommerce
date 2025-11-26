@@ -50,7 +50,7 @@ const Toast = ({ message, type = 'success', onClose, duration = 3000 }) => {
     success: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white',
     error: 'bg-gradient-to-r from-red-500 to-rose-600 text-white',
     warning: 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white',
-    info: 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white',
+    info: 'bg-gradient-to-r from-starg-pink to-pink-400 text-white',
   };
 
   return (

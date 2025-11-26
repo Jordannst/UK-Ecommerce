@@ -6,7 +6,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Halo! 👋 Saya adalah asisten virtual UNKLAB Store. Saya bisa membantu Anda mencari produk, memberikan informasi tentang produk, atau menjawab pertanyaan tentang toko kami. Ada yang bisa saya bantu?',
+      text: 'Halo! 👋 Saya adalah asisten virtual Starg. Saya bisa membantu Anda mencari produk, memberikan informasi tentang produk, atau menjawab pertanyaan tentang toko kami. Ada yang bisa saya bantu?',
       sender: 'bot',
       timestamp: new Date(),
     },
@@ -46,7 +46,7 @@ const Chatbot = () => {
       setMessages([
         {
           id: 1,
-          text: 'Halo! 👋 Saya adalah asisten virtual UNKLAB Store. Saya bisa membantu Anda mencari produk, memberikan informasi tentang produk, atau menjawab pertanyaan tentang toko kami. Ada yang bisa saya bantu?',
+          text: 'Halo! 👋 Saya adalah asisten virtual Starg. Saya bisa membantu Anda mencari produk, memberikan informasi tentang produk, atau menjawab pertanyaan tentang toko kami. Ada yang bisa saya bantu?',
           sender: 'bot',
           timestamp: new Date(),
         },
@@ -148,7 +148,7 @@ const Chatbot = () => {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-14 h-14 bg-unklab-blue hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 w-14 h-14 bg-starg-pink hover:bg-starg-pink-dark text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 group"
         aria-label="Buka Chatbot"
       >
         {isOpen ? (
@@ -186,7 +186,7 @@ const Chatbot = () => {
       {isOpen && (
         <div className="fixed bottom-20 right-2 md:bottom-24 md:right-6 w-[calc(100vw-1rem)] md:w-96 h-[600px] max-h-[calc(100vh-6rem)] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200">
           {/* Header */}
-          <div className="bg-unklab-blue text-white p-4 rounded-t-lg flex items-center justify-between">
+          <div className="bg-starg-pink text-white p-4 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                 <svg
@@ -204,7 +204,7 @@ const Chatbot = () => {
                 </svg>
               </div>
               <div>
-                <h3 className="font-semibold">UNKLAB Store Assistant</h3>
+                <h3 className="font-semibold">Starg Assistant</h3>
                 <p className="text-xs text-white/80">Online</p>
               </div>
             </div>
@@ -222,7 +222,7 @@ const Chatbot = () => {
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     message.sender === 'user'
-                      ? 'bg-unklab-blue text-white'
+                      ? 'bg-starg-pink text-white'
                       : 'bg-white text-gray-800 border border-gray-200'
                   }`}
                 >
@@ -270,13 +270,13 @@ const Chatbot = () => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="Ketik pesan Anda..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-unklab-blue focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-starg-pink focus:border-transparent"
                 disabled={isTyping}
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim() || isTyping}
-                className="px-4 py-2 bg-unklab-blue text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-starg-pink text-white rounded-lg hover:bg-starg-pink-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg
                   className="w-5 h-5"

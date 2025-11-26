@@ -55,12 +55,12 @@ const Login = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-unklab-blue rounded-lg flex items-center justify-center">
+            <div className="w-12 h-12 bg-starg-pink rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-2xl">U</span>
             </div>
             <div className="flex flex-col items-start">
-              <span className="text-2xl font-bold text-unklab-blue">UNKLAB</span>
-              <span className="text-xs text-gray-500">Campus Store</span>
+              <span className="text-2xl font-bold text-starg-pink">Starg</span>
+              <span className="text-xs text-gray-500">E-Commerce</span>
             </div>
           </div>
           <h2 className="text-3xl font-bold text-gray-900">Masuk ke Akun</h2>
@@ -87,7 +87,7 @@ const Login = () => {
                 onChange={handleChange}
                 required
                 className="input-field"
-                placeholder="nama@student.unklab.ac.id"
+                placeholder="nama@email.com"
               />
             </div>
 
@@ -118,7 +118,7 @@ const Login = () => {
           <div className="mt-6">
             <p className="text-center text-sm text-gray-600">
               Belum punya akun?{' '}
-              <Link to="/register" className="text-unklab-blue font-medium hover:underline">
+              <Link to="/register" className="text-starg-pink font-medium hover:underline">
                 Daftar sekarang
               </Link>
             </p>
@@ -126,7 +126,7 @@ const Login = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-sm text-gray-600 hover:text-unklab-blue">
+          <Link to="/" className="text-sm text-gray-600 hover:text-starg-pink">
             ← Kembali ke Beranda
           </Link>
         </div>

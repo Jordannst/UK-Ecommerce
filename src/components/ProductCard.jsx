@@ -92,19 +92,19 @@ const ProductCard = ({ product }) => {
             )}
           </div>
 
-          <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-unklab-blue transition-colors">
+          <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-starg-pink transition-colors">
             {product.name}
           </h3>
 
           <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
 
           <div className="flex items-center justify-between pt-2">
-            <span className="text-lg font-bold text-unklab-blue">
+            <span className="text-lg font-bold text-starg-pink">
               {formatPrice(product.price)}
             </span>
             <button
               onClick={handleAddToCart}
-              className="bg-unklab-blue text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-opacity-90 transition-all duration-200 hover:shadow-md active:scale-95 whitespace-nowrap"
+              className="bg-starg-pink text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-opacity-90 transition-all duration-200 hover:shadow-md active:scale-95 whitespace-nowrap"
             >
               + Keranjang
             </button>

@@ -155,7 +155,7 @@ const AdminDashboard = () => {
           <div className="card p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">Pesanan Terbaru</h2>
-              <Link to="/admin/orders" className="text-sm text-unklab-blue hover:underline">
+              <Link to="/admin/orders" className="text-sm text-starg-pink hover:underline">
                 Lihat Semua →
               </Link>
             </div>
@@ -185,7 +185,7 @@ const AdminDashboard = () => {
                   <tbody className="divide-y divide-gray-200">
                     {recentOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 text-sm font-medium text-unklab-blue">{order.orderNumber}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-starg-pink">{order.orderNumber}</td>
                         <td className="px-4 py-3 text-sm text-gray-600">
                           {new Date(order.createdAt).toLocaleDateString('id-ID', {
                             day: 'numeric',

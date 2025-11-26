@@ -205,7 +205,7 @@ const Checkout = () => {
               </div>
               
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                <div className="w-12 h-12 bg-gradient-to-br from-unklab-blue to-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-starg-pink to-pink-400 rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-lg">{user?.name?.charAt(0) || 'U'}</span>
                 </div>
                 <div className="flex-1">
@@ -307,7 +307,7 @@ const Checkout = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Metode Pembayaran</h2>
 
               {/* Midtrans Payment Gateway Info */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+              <div className="bg-gradient-to-r from-pink-50 to-pink-100 rounded-xl p-4 border border-pink-200">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-white rounded-lg shadow-sm flex items-center justify-center">
                     <span className="text-2xl">💳</span>
@@ -402,7 +402,7 @@ const Checkout = () => {
                 </div>
                 <div className="border-t border-gray-200 pt-3 flex justify-between text-base">
                   <span className="font-semibold">Total Pembayaran</span>
-                  <span className="font-bold text-unklab-blue">{formatPrice(total)}</span>
+                  <span className="font-bold text-starg-pink">{formatPrice(total)}</span>
                 </div>
               </div>
 

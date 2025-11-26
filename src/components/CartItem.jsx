@@ -51,7 +51,7 @@ const CartItem = ({ item }) => {
           <div className="flex-1">
             <Link
               to={`/product/${item.productId}`}
-              className="font-semibold text-gray-900 hover:text-unklab-blue transition-colors"
+              className="font-semibold text-gray-900 hover:text-starg-pink transition-colors"
             >
               {item.name}
             </Link>
@@ -84,7 +84,7 @@ const CartItem = ({ item }) => {
 
             {/* Price and Remove */}
             <div className="flex items-center gap-4">
-              <span className="font-bold text-unklab-blue">
+              <span className="font-bold text-starg-pink">
                 {formatPrice(item.price * item.quantity)}
               </span>
               <button
