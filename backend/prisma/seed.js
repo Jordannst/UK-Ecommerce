@@ -6,15 +6,15 @@ const prisma = new PrismaClient();
 // Data untuk seeding database
 const seedData = {
   categories: [
-    { name: 'Apparel', description: 'Pakaian dan fashion UNKLAB', icon: '👕' },
+    { name: 'Apparel', description: 'Pakaian dan fashion Starg', icon: '👕' },
     { name: 'Accessories', description: 'Aksesori dan merchandise', icon: '🎒' },
     { name: 'Stationery', description: 'Alat tulis dan keperluan kuliah', icon: '📚' },
     { name: 'Food & Beverage', description: 'Makanan dan minuman lokal', icon: '☕' },
   ],
   users: [
     {
-      name: 'Admin UNKLAB',
-      email: 'admin@unklab.ac.id',
+      name: 'Admin Starg',
+      email: 'admin@starg.com',
       password: 'admin123',
       role: 'admin',
       phone: '081234567890',
@@ -22,7 +22,7 @@ const seedData = {
     },
     {
       name: 'John Doe',
-      email: 'john@student.unklab.ac.id',
+      email: 'john@starg.com',
       password: 'password123',
       role: 'user',
       phone: '081298765432',
@@ -31,8 +31,8 @@ const seedData = {
   ],
   products: [
     {
-      name: 'UNKLAB Hoodie Premium Navy',
-      description: 'Hoodie eksklusif dengan logo UNKLAB, bahan cotton fleece premium, nyaman dan hangat untuk cuaca dingin Tomohon.',
+      name: 'Starg Hoodie Premium Navy',
+      description: 'Hoodie eksklusif dengan logo Starg, bahan cotton fleece premium, nyaman dan hangat.',
       price: 250000,
       category: 'Apparel',
       faculty: 'UKM Kreatif',
@@ -42,8 +42,8 @@ const seedData = {
       reviews: 24,
     },
     {
-      name: 'Notebook Kulit UNKLAB Edition',
-      description: 'Buku catatan dengan cover kulit sintetis premium, logo UNKLAB embossed, 200 halaman.',
+      name: 'Notebook Kulit Starg Edition',
+      description: 'Buku catatan dengan cover kulit sintetis premium, logo Starg embossed, 200 halaman.',
       price: 120000,
       category: 'Stationery',
       faculty: 'UKM Entrepreneur',
@@ -64,8 +64,8 @@ const seedData = {
       reviews: 67,
     },
     {
-      name: 'UNKLAB T-Shirt Classic White',
-      description: 'Kaos katun combed 30s dengan sablon plastisol berkualitas, desain minimalis UNKLAB.',
+      name: 'Starg T-Shirt Classic White',
+      description: 'Kaos katun combed 30s dengan sablon plastisol berkualitas, desain minimalis Starg.',
       price: 95000,
       category: 'Apparel',
       faculty: 'UKM Kreatif',
@@ -75,8 +75,8 @@ const seedData = {
       reviews: 89,
     },
     {
-      name: 'Sticker Pack UNKLAB',
-      description: 'Set 10 sticker vinyl waterproof dengan berbagai desain UNKLAB yang aesthetic.',
+      name: 'Sticker Pack Starg',
+      description: 'Set 10 sticker vinyl waterproof dengan berbagai desain Starg yang aesthetic.',
       price: 35000,
       category: 'Accessories',
       faculty: 'Fakultas Seni',
@@ -86,7 +86,7 @@ const seedData = {
       reviews: 102,
     },
     {
-      name: 'Tumbler Stainless UNKLAB 500ml',
+      name: 'Tumbler Stainless Starg 500ml',
       description: 'Tumbler stainless steel dengan insulasi ganda, menjaga suhu minuman hingga 12 jam.',
       price: 145000,
       category: 'Accessories',
@@ -108,8 +108,8 @@ const seedData = {
       reviews: 28,
     },
     {
-      name: 'Pin Enamel UNKLAB Collection',
-      description: 'Set 3 pin enamel dengan desain eksklusif UNKLAB, cocok untuk koleksi atau gift.',
+      name: 'Pin Enamel Starg Collection',
+      description: 'Set 3 pin enamel dengan desain eksklusif Starg, cocok untuk koleksi atau gift.',
       price: 45000,
       category: 'Accessories',
       faculty: 'Fakultas Seni',
@@ -130,8 +130,8 @@ const seedData = {
       reviews: 95,
     },
     {
-      name: 'Sweater UNKLAB Grey Premium',
-      description: 'Sweater abu-abu dengan bordiran UNKLAB, bahan katun fleece lembut dan hangat.',
+      name: 'Sweater Starg Grey Premium',
+      description: 'Sweater abu-abu dengan bordiran Starg, bahan katun fleece lembut dan hangat.',
       price: 220000,
       category: 'Apparel',
       faculty: 'UKM Kreatif',
@@ -141,8 +141,8 @@ const seedData = {
       reviews: 19,
     },
     {
-      name: 'Gantungan Kunci UNKLAB Leather',
-      description: 'Gantungan kunci kulit asli dengan logo UNKLAB embossed, elegan dan tahan lama.',
+      name: 'Gantungan Kunci Starg Leather',
+      description: 'Gantungan kunci kulit asli dengan logo Starg embossed, elegan dan tahan lama.',
       price: 55000,
       category: 'Accessories',
       faculty: 'UKM Entrepreneur',
@@ -234,8 +234,8 @@ async function main() {
   console.log(`  - Products: ${await prisma.product.count()}`);
   console.log('');
   console.log('🔐 Login Credentials:');
-  console.log('  Admin: admin@unklab.ac.id / admin123');
-  console.log('  User:  john@student.unklab.ac.id / password123');
+  console.log('  Admin: admin@starg.com / admin123');
+  console.log('  User:  john@starg.com / password123');
 }
 
 main()

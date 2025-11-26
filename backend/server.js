@@ -109,7 +109,7 @@ app.use('/api/payment', paymentRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
-    message: 'UNKLAB E-Commerce API is running',
+    message: 'Starg E-Commerce API is running',
     timestamp: new Date().toISOString(),
     services: {
       database: process.env.DATABASE_URL ? 'configured' : 'not configured',

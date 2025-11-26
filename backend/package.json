@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "UNKLAB E-Commerce Backend API",
+  "description": "Starg E-Commerce Backend API",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -28,7 +28,8 @@
     "jsonwebtoken": "^9.0.2",
     "midtrans-client": "^1.3.1",
     "multer": "^2.0.2",
-    "multer-storage-cloudinary": "^4.0.0"
+    "multer-storage-cloudinary": "^4.0.0",
+    "nodemailer": "^7.0.11"
   },
   "devDependencies": {
     "nodemon": "^3.1.11",

@@ -1,4 +1,4 @@
-// Prisma Schema untuk UNKLAB E-Commerce Platform
+// Prisma Schema untuk Starg E-Commerce Platform
 generator client {
   provider = "prisma-client-js"
 }

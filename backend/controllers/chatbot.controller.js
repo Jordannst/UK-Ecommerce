@@ -151,11 +151,11 @@ export const getChatbotResponse = async (req, res, next) => {
     }));
 
     // Build context for Gemini
-    const systemContext = `Anda adalah asisten virtual yang membantu pelanggan di UNKLAB Store, sebuah platform e-commerce untuk Universitas Klabat.
+    const systemContext = `Anda adalah asisten virtual yang membantu pelanggan di Starg, sebuah platform e-commerce.
 
 INFORMASI TOKO:
-- Nama: UNKLAB Store
-- Platform e-commerce resmi Universitas Klabat
+- Nama: Starg
+- Platform e-commerce modern
 - Menjual berbagai produk berkualitas termasuk apparel, stationery, food & beverage, dan accessories
 
 KATEGORI PRODUK YANG TERSEDIA:
@@ -187,7 +187,7 @@ Jawab pertanyaan pelanggan dengan ramah dan informatif.`;
       } else if (lowerMessage.includes('stok') || lowerMessage.includes('tersedia')) {
         fallbackResponse = 'Untuk informasi ketersediaan stok, silakan cek di halaman detail produk atau hubungi customer service kami.';
       } else if (lowerMessage.includes('produk') || lowerMessage.includes('barang')) {
-        fallbackResponse = `Kami memiliki berbagai produk berkualitas di UNKLAB Store. Silakan kunjungi halaman Shop untuk melihat semua produk yang tersedia, termasuk apparel, stationery, food & beverage, dan accessories.`;
+        fallbackResponse = `Kami memiliki berbagai produk berkualitas di Starg. Silakan kunjungi halaman Shop untuk melihat semua produk yang tersedia, termasuk apparel, stationery, food & beverage, dan accessories.`;
       } else {
         fallbackResponse = 'Maaf, fitur chatbot AI sedang dalam maintenance. Silakan kunjungi halaman Shop untuk melihat produk atau hubungi customer service untuk bantuan lebih lanjut.';
       }
@@ -417,7 +417,7 @@ export const getInitialMessage = async (req, res, next) => {
   try {
     const initialMessage = {
       id: 1,
-      text: 'Halo! 👋 Saya adalah asisten virtual UNKLAB Store. Saya bisa membantu Anda mencari produk, memberikan informasi tentang produk, atau menjawab pertanyaan tentang toko kami. Ada yang bisa saya bantu?',
+      text: 'Halo! 👋 Saya adalah asisten virtual Starg. Saya bisa membantu Anda mencari produk, memberikan informasi tentang produk, atau menjawab pertanyaan tentang toko kami. Ada yang bisa saya bantu?',
       sender: 'bot',
       timestamp: new Date(),
     };
@@ -430,4 +430,3 @@ export const getInitialMessage = async (req, res, next) => {
     next(error);
   }
 };
-

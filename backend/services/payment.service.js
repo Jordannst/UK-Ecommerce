@@ -106,6 +106,13 @@ export const createSnapTransaction = async (order, user) => {
     }
   }
 
+  // Callback URLs - Pastikan redirect ke port 3000
+  // Pastikan FRONTEND_URL mengarah ke port 3000 untuk development
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  
+  // Pastikan URL tidak berakhir dengan slash
+  const cleanFrontendUrl = frontendUrl.replace(/\/$/, '');
+
   // Parameter untuk Midtrans Snap
   const parameter = {
     transaction_details: {
@@ -137,11 +144,12 @@ export const createSnapTransaction = async (order, user) => {
         country_code: 'IDN',
       },
     },
-    // Callback URLs (opsional, untuk redirect setelah payment)
+    // Callback URLs (untuk redirect setelah payment di Midtrans)
+    // Redirect ke http://localhost:3000/order-success/{orderId}
     callbacks: {
-      finish: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/order-success/${order.id}`,
-      error: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/order-failed/${order.id}`,
-      pending: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/order-pending/${order.id}`,
+      finish: `${cleanFrontendUrl}/order-success/${order.id}`,
+      error: `${cleanFrontendUrl}/order-failed/${order.id}`,
+      pending: `${cleanFrontendUrl}/order-pending/${order.id}`,
     },
     // Expiry time (opsional)
     expiry: {
@@ -158,6 +166,10 @@ export const createSnapTransaction = async (order, user) => {
     console.log('   Items count:', parameter.item_details.length);
     console.log('   Customer:', user.email);
     console.log('   Midtrans Mode:', process.env.MIDTRANS_IS_PRODUCTION === 'true' ? 'Production' : 'Sandbox');
+    console.log('   Callback URLs:');
+    console.log('     ✅ Success:  ', parameter.callbacks.finish);
+    console.log('     ❌ Error:    ', parameter.callbacks.error);
+    console.log('     ⏳ Pending:  ', parameter.callbacks.pending);
     
     // Validate parameter sebelum kirim ke Midtrans
     if (!parameter.transaction_details.order_id || !parameter.transaction_details.gross_amount) {
@@ -295,6 +307,45 @@ export const handlePaymentNotification = async (notification) => {
   // 5. Jika cancelled/expired, kembalikan stok
   if (orderStatus === 'cancelled' && order.status !== 'cancelled') {
     await restoreStock(order.orderItems);
+  }
+
+  // 6. Jika payment berhasil (paid), kirim email konfirmasi
+  if (paymentStatus === 'paid' && order.paymentStatus !== 'paid') {
+    try {
+      // Get user data
+      const user = await prisma.user.findUnique({
+        where: { id: order.userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      });
+
+      if (user) {
+        // Get order dengan items untuk email
+        const orderForEmail = await prisma.order.findUnique({
+          where: { id: order.id },
+          include: {
+            orderItems: {
+              include: {
+                product: true,
+              },
+            },
+          },
+        });
+
+        // Kirim email (async, tidak blocking)
+        const { sendOrderConfirmationEmail } = await import('./email.service.js');
+        sendOrderConfirmationEmail(orderForEmail, user).catch((emailError) => {
+          console.error('⚠️  Gagal mengirim email konfirmasi:', emailError.message);
+          // Jangan throw error, karena email adalah fitur tambahan
+        });
+      }
+    } catch (emailError) {
+      console.error('⚠️  Error preparing email:', emailError.message);
+      // Jangan throw error, karena email adalah fitur tambahan
+    }
   }
 
   console.log(`✅ Order ${order_id} updated: status=${orderStatus}, payment=${paymentStatus}`);
