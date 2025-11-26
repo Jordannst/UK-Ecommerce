@@ -1,0 +1,126 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+.next/
+out/
+
+# Logs
+logs/
+*.log
+
+# Environment variables (PENTING - CREDENTIALS!)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+backend/.env.local
+backend/.env.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+db.json.backup
+
+# Prisma
+backend/prisma/migrations/
+backend/node_modules/.prisma/
+backend/generated/
+
+# Uploads (images akan di Cloudinary, tidak perlu commit)
+backend/uploads/
+uploads/
+
+# Cache & Temp
+.cache/
+.temp/
+.tmp/
+*.tmp
+.eslintcache
+.parcel-cache/
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE / Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*.swn
+*.bak
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.settings/
+.classpath
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Miscellaneous
+*.local
+.pnp.*
+.yarn/
+.pnp/
+*.tsbuildinfo
+
+# Production
+*.prod
+*.production
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+.pnp.js
+debug.log
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Windows
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+INSTALL_POSTGRESQL_WINDOWS.md
+QUICK_START.md

@@ -1,0 +1,271 @@
+import { useState, useEffect } from 'react';
+import AdminSidebar from '../../components/AdminSidebar';
+import orderService from '../../services/orderService';
+
+const AdminOrders = () => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    loadOrders();
+  }, []);
+
+  const loadOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await orderService.getAllOrders();
+      setOrders(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+    } catch (error) {
+      console.error('Error loading orders:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewOrder = (order) => {
+    setSelectedOrder(order);
+    setShowModal(true);
+  };
+
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    try {
+      await orderService.updateOrderStatus(orderId, newStatus);
+      loadOrders();
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status: newStatus });
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status');
+    }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    if (window.confirm('Are you sure you want to delete this order?')) {
+      try {
+        await orderService.deleteOrder(orderId);
+        loadOrders();
+        if (showModal) setShowModal(false);
+      } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('Failed to delete order');
+      }
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      Pending: 'bg-yellow-100 text-yellow-700',
+      Paid: 'bg-blue-100 text-blue-700',
+      Processing: 'bg-purple-100 text-purple-700',
+      Delivered: 'bg-green-100 text-green-700',
+      Cancelled: 'bg-red-100 text-red-700',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <AdminSidebar />
+
+      <main className="flex-1 p-8">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Kelola Pesanan</h1>
+
+          {loading ? (
+            <div className="card p-6">
+              <div className="animate-pulse space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="card p-12 text-center">
+              <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <p className="text-gray-600">Belum ada pesanan</p>
+            </div>
+          ) : (
+            <div className="card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID Pesanan</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pelanggan</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {orders.map((order) => (
+                      <tr key={order.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">#{order.id}</td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {new Date(order.createdAt).toLocaleDateString('id-ID', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {order.customerInfo?.name || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {order.items?.length || 0} item
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {formatPrice(order.total)}
+                        </td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
+                            className={`badge ${getStatusColor(order.status)} cursor-pointer`}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleViewOrder(order)}
+                              className="text-blue-600 hover:text-blue-800"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOrder(order.id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Order Detail Modal */}
+      {showModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">Pesanan #{selectedOrder.id}</h2>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Customer Info */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">Informasi Pelanggan</h3>
+                <div className="card p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Nama:</span>
+                    <span className="font-medium">{selectedOrder.customerInfo?.name || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Email:</span>
+                    <span className="font-medium">{selectedOrder.customerInfo?.email || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Telepon:</span>
+                    <span className="font-medium">{selectedOrder.customerInfo?.phone || 'N/A'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">Item Pesanan</h3>
+                <div className="space-y-3">
+                  {selectedOrder.items?.map((item, index) => (
+                    <div key={index} className="card p-4 flex gap-3">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{item.name}</p>
+                        <p className="text-sm text-gray-500">
+                          {item.quantity} × {formatPrice(item.price)}
+                        </p>
+                      </div>
+                      <p className="font-medium text-gray-900">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3">Ringkasan Pesanan</h3>
+                <div className="card p-4 space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Metode Pembayaran:</span>
+                    <span className="font-medium">{selectedOrder.paymentMethod}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Alamat Pengiriman:</span>
+                    <span className="font-medium text-right">{selectedOrder.shippingAddress}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span className={`badge ${getStatusColor(selectedOrder.status)}`}>
+                      {selectedOrder.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-2 border-t border-gray-200 text-base">
+                    <span className="font-semibold">Total:</span>
+                    <span className="font-bold text-unklab-blue">{formatPrice(selectedOrder.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminOrders;
+
+
