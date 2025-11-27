@@ -3,29 +3,14 @@ import prisma from '../utils/prisma.js';
 import { generateToken } from '../utils/jwt.js';
 
 // Register user baru
+// Note: Input sudah disanitasi dan divalidasi oleh middleware sebelum sampai sini
 export const register = async (req, res, next) => {
   try {
-    console.log('📝 Register route hit');
-    console.log('📥 Request body:', { 
-      name: req.body?.name, 
-      email: req.body?.email,
-      hasPassword: !!req.body?.password 
-    });
-
     const { name, email, password, phone, address } = req.body;
-
-    // Validasi input
-    if (!name || !email || !password) {
-      console.log('❌ Validation failed: Missing required fields');
-      return res.status(400).json({
-        success: false,
-        message: 'Nama, email, dan password wajib diisi'
-      });
-    }
 
     // Cek apakah email sudah terdaftar
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: email.toLowerCase().trim() }
     });
 
     if (existingUser) {
@@ -39,13 +24,14 @@ export const register = async (req, res, next) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Buat user baru
+    // Input sudah disanitasi oleh middleware sanitizeInput
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
         password: hashedPassword,
-        phone,
-        address,
+        phone: phone ? phone.trim() : null,
+        address: address ? address.trim() : null,
         role: 'user'
       },
       select: {
@@ -62,7 +48,6 @@ export const register = async (req, res, next) => {
     // Generate token
     const token = generateToken(user.id);
 
-    console.log('✅ Registration successful for:', email);
     res.status(201).json({
       success: true,
       message: 'Registrasi berhasil',
@@ -72,27 +57,20 @@ export const register = async (req, res, next) => {
       }
     });
   } catch (error) {
-    console.error('❌ Registration error:', error);
+    // Error akan ditangani oleh errorHandler middleware
     next(error);
   }
 };
 
 // Login user
+// Note: Input sudah divalidasi oleh middleware validateLogin sebelum sampai sini
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // Validasi input
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email dan password wajib diisi'
-      });
-    }
-
-    // Cari user berdasarkan email
+    // Cari user berdasarkan email (case-insensitive)
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email: email.toLowerCase().trim() }
     });
 
     if (!user) {
@@ -127,6 +105,7 @@ export const login = async (req, res, next) => {
       }
     });
   } catch (error) {
+    // Error akan ditangani oleh errorHandler middleware
     next(error);
   }
 };
@@ -158,17 +137,26 @@ export const getMe = async (req, res, next) => {
 };
 
 // Update profile
+// Note: Input sudah disanitasi dan divalidasi oleh middleware sebelum sampai sini
 export const updateProfile = async (req, res, next) => {
   try {
     const { name, phone, address } = req.body;
 
+    // Build update data (hanya field yang ada dan sudah disanitasi)
+    const updateData = {};
+    if (name !== undefined) {
+      updateData.name = name.trim();
+    }
+    if (phone !== undefined) {
+      updateData.phone = phone ? phone.trim() : null;
+    }
+    if (address !== undefined) {
+      updateData.address = address ? address.trim() : null;
+    }
+
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        ...(name && { name }),
-        ...(phone && { phone }),
-        ...(address && { address })
-      },
+      data: updateData,
       select: {
         id: true,
         name: true,
@@ -186,6 +174,7 @@ export const updateProfile = async (req, res, next) => {
       data: user
     });
   } catch (error) {
+    // Error akan ditangani oleh errorHandler middleware
     next(error);
   }
 };

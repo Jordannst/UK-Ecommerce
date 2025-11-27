@@ -1,27 +1,54 @@
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../utils/prisma.js';
 
-const prisma = new PrismaClient();
+// JWT Configuration
+const JWT_OPTIONS = {
+  issuer: 'starg-ecommerce',
+  audience: 'starg-users'
+};
 
-// Middleware untuk verifikasi JWT token
+/**
+ * Middleware untuk verifikasi JWT token (Hardened)
+ * Mengambil token dari header Authorization: Bearer <token>
+ * Memverifikasi dengan issuer dan audience
+ */
 export const authenticate = async (req, res, next) => {
   try {
-    console.log(`🔐 Authenticate middleware called for: ${req.method} ${req.path}`);
     const authHeader = req.headers.authorization;
 
+    // Cek apakah header Authorization ada dan formatnya benar
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      console.log('❌ No authorization header found');
       return res.status(401).json({
         success: false,
         message: 'Token tidak ditemukan. Silakan login terlebih dahulu.'
       });
     }
 
+    // Extract token dari header
     const token = authHeader.split(' ')[1];
 
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token tidak valid'
+      });
+    }
+
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
+      // Verify token dengan issuer dan audience
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+        issuer: JWT_OPTIONS.issuer,
+        audience: JWT_OPTIONS.audience
+      });
+
+      // Validasi decoded token
+      if (!decoded || !decoded.userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Token tidak valid'
+        });
+      }
+
       // Ambil user dari database
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
@@ -44,15 +71,38 @@ export const authenticate = async (req, res, next) => {
 
       // Attach user ke request
       req.user = user;
-      console.log(`✅ Authentication successful for user: ${user.email} (ID: ${user.id})`);
       next();
     } catch (error) {
+      // Handle specific JWT errors
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Token tidak valid'
+        });
+      }
+
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Token sudah kadaluarsa'
+        });
+      }
+
+      if (error.name === 'NotBeforeError') {
+        return res.status(401).json({
+          success: false,
+          message: 'Token belum aktif'
+        });
+      }
+
+      // Generic error
       return res.status(401).json({
         success: false,
-        message: 'Token tidak valid atau sudah kadaluarsa'
+        message: 'Token tidak valid'
       });
     }
   } catch (error) {
+    // Pass error to error handler
     next(error);
   }
 };
