@@ -28,14 +28,27 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-// Allow multiple origins for flexibility (development)
-// Always include common development ports, plus any from env
-const defaultOrigins = ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001'];
+// CORS Configuration - Production safe
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Production: hanya allow production domain dari env
+// Development: allow localhost + env origins
+const defaultOrigins = isProduction 
+  ? [] // Production: tidak ada default, hanya dari env
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:3001']; // Development
+
 const envOrigins = process.env.FRONTEND_URL 
   ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
   : [];
+
 // Combine and remove duplicates
 const allowedOrigins = [...new Set([...defaultOrigins, ...envOrigins])].filter(Boolean);
+
+// Production validation
+if (isProduction && allowedOrigins.length === 0) {
+  console.warn('⚠️  WARNING: FRONTEND_URL tidak dikonfigurasi untuk production!');
+  console.warn('   CORS akan memblokir semua request. Tambahkan FRONTEND_URL di .env');
+}
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -60,6 +73,24 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security Headers Middleware
+app.use((req, res, next) => {
+  // Security headers untuk production
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // HSTS hanya untuk production dengan HTTPS
+  if (isProduction && req.secure) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  
+  // Referrer Policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  next();
+});
 
 // Serve static files (untuk uploaded images)
 app.use('/uploads', express.static(join(__dirname, 'uploads')));

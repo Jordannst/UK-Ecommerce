@@ -157,6 +157,11 @@ export const createSnapTransaction = async (order, user) => {
       unit: 'hours',
       duration: 24, // 24 jam
     },
+    // Nonaktifkan email notification dari Midtrans
+    // Kita akan menggunakan Resend untuk mengirim email sendiri
+    notification: {
+      email_notification: false, // Nonaktifkan email otomatis dari Midtrans
+    },
   };
 
   try {
@@ -166,6 +171,7 @@ export const createSnapTransaction = async (order, user) => {
     console.log('   Items count:', parameter.item_details.length);
     console.log('   Customer:', user.email);
     console.log('   Midtrans Mode:', process.env.MIDTRANS_IS_PRODUCTION === 'true' ? 'Production' : 'Sandbox');
+    console.log('   📧 Email Notification: DISABLED (menggunakan Resend)');
     console.log('   Callback URLs:');
     console.log('     ✅ Success:  ', parameter.callbacks.finish);
     console.log('     ❌ Error:    ', parameter.callbacks.error);
@@ -322,7 +328,7 @@ export const handlePaymentNotification = async (notification) => {
         },
       });
 
-      if (user) {
+      if (user && user.email) {
         // Get order dengan items untuk email
         const orderForEmail = await prisma.order.findUnique({
           where: { id: order.id },
@@ -335,12 +341,32 @@ export const handlePaymentNotification = async (notification) => {
           },
         });
 
-        // Kirim email (async, tidak blocking)
-        const { sendOrderConfirmationEmail } = await import('./email.service.js');
-        sendOrderConfirmationEmail(orderForEmail, user).catch((emailError) => {
-          console.error('⚠️  Gagal mengirim email konfirmasi:', emailError.message);
-          // Jangan throw error, karena email adalah fitur tambahan
-        });
+        if (orderForEmail) {
+          // Kirim email (async, tidak blocking)
+          const { sendOrderConfirmationEmail } = await import('./email.service.js');
+          sendOrderConfirmationEmail(orderForEmail, user)
+            .then((result) => {
+              if (result.success) {
+                console.log('✅ Email konfirmasi pembayaran berhasil dikirim!');
+                console.log(`   To: ${result.to}`);
+                console.log(`   Order: ${orderForEmail.orderNumber}`);
+              } else {
+                console.error('❌ Email konfirmasi pembayaran gagal dikirim:');
+                console.error(`   Error: ${result.error || result.message}`);
+              }
+            })
+            .catch((emailError) => {
+              console.error('❌ Error mengirim email konfirmasi pembayaran:');
+              console.error(`   Message: ${emailError.message}`);
+            });
+        } else {
+          console.warn('⚠️  Order tidak ditemukan untuk mengirim email');
+        }
+      } else {
+        console.warn('⚠️  User atau email tidak ditemukan untuk mengirim email konfirmasi');
+        console.warn(`   User ID: ${order.userId}`);
+        console.warn(`   User: ${user ? 'found' : 'not found'}`);
+        console.warn(`   Email: ${user?.email || 'not found'}`);
       }
     } catch (emailError) {
       console.error('⚠️  Error preparing email:', emailError.message);

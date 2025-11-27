@@ -1,92 +1,45 @@
 /**
- * Email Service
+ * Email Service menggunakan Resend
  * 
- * Service untuk mengirim email menggunakan nodemailer (SMTP) atau EngageLab REST API
- * Mendukung Gmail, EngageLab REST API, SMTP custom, dan service email lainnya
+ * Resend adalah modern email API yang reliable dan mudah digunakan
+ * Free tier: 100 emails/day, 3,000 emails/month
+ * 
+ * Setup:
+ * 1. Daftar di https://resend.com
+ * 2. Buat API key
+ * 3. Verifikasi domain (optional, bisa pakai default)
+ * 4. Tambahkan RESEND_API_KEY di .env
  */
 
-import nodemailer from 'nodemailer';
-import axios from 'axios';
+import { Resend } from 'resend';
 
-// Konfigurasi email dari environment variables
-const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'smtp'; // 'smtp' atau 'engagelab'
-const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '587', 10);
-const EMAIL_USER = process.env.EMAIL_USER || '';
-const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD || '';
-const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER || 'noreply@starg.com';
-const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'Starg';
+// Konfigurasi dari environment variables
+const RESEND_API_KEY = process.env.RESEND_API_KEY || '';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'onboarding@resend.dev'; // Default Resend email
+const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'Starg E-Commerce';
 const STORE_NAME = process.env.STORE_NAME || 'Starg';
 
-// EngageLab REST API Configuration
-const ENGAGELAB_API_USER = process.env.ENGAGELAB_API_USER || '';
-const ENGAGELAB_API_KEY = process.env.ENGAGELAB_API_KEY || '';
-const ENGAGELAB_API_URL = process.env.ENGAGELAB_API_URL || 'https://email.api.engagelab.cc/v1/mail/send';
-const ENGAGELAB_FROM_EMAIL = process.env.ENGAGELAB_FROM_EMAIL || '';
-
 // Validasi konfigurasi
-const isEmailConfigured = EMAIL_PROVIDER === 'engagelab' 
-  ? (ENGAGELAB_API_USER && ENGAGELAB_API_KEY && ENGAGELAB_FROM_EMAIL)
-  : (EMAIL_USER && EMAIL_PASSWORD);
+const isEmailConfigured = !!RESEND_API_KEY;
 
 if (!isEmailConfigured) {
-  if (EMAIL_PROVIDER === 'engagelab') {
-    console.warn('⚠️  Email service (EngageLab) tidak dikonfigurasi.');
-    console.warn('   Tambahkan ENGAGELAB_API_USER, ENGAGELAB_API_KEY, dan ENGAGELAB_FROM_EMAIL di .env');
-  } else {
-    console.warn('⚠️  Email service (SMTP) tidak dikonfigurasi.');
-    console.warn('   Tambahkan EMAIL_USER dan EMAIL_PASSWORD di .env');
-  }
+  console.warn('⚠️  Email service (Resend) tidak dikonfigurasi.');
+  console.warn('   Tambahkan RESEND_API_KEY di .env');
+  console.warn('   Daftar di https://resend.com untuk mendapatkan API key');
   console.warn('   Email tidak akan dikirim sampai konfigurasi selesai.');
 }
 
-/**
- * Buat transporter untuk nodemailer
- */
-const createTransporter = () => {
-  if (!isEmailConfigured) {
-    return null;
+// Initialize Resend client
+let resend = null;
+if (isEmailConfigured) {
+  try {
+    resend = new Resend(RESEND_API_KEY);
+    console.log('✅ Resend email service initialized');
+  } catch (error) {
+    console.error('❌ Error initializing Resend:', error.message);
+    console.warn('   Email service tidak akan berfungsi');
   }
-
-  // Konfigurasi untuk Gmail
-  if (EMAIL_HOST.includes('gmail.com')) {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASSWORD, // App Password untuk Gmail
-      },
-    });
-  }
-
-  // Konfigurasi untuk EngageLab
-  if (EMAIL_HOST.includes('engagelab.com')) {
-    return nodemailer.createTransport({
-      host: EMAIL_HOST,
-      port: EMAIL_PORT,
-      secure: EMAIL_PORT === 465, // true untuk 465, false untuk port lain
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASSWORD,
-      },
-      // EngageLab biasanya menggunakan TLS
-      tls: {
-        ciphers: 'SSLv3',
-      },
-    });
-  }
-
-  // Konfigurasi SMTP custom
-  return nodemailer.createTransport({
-    host: EMAIL_HOST,
-    port: EMAIL_PORT,
-    secure: EMAIL_PORT === 465, // true untuk 465, false untuk port lain
-    auth: {
-      user: EMAIL_USER,
-      pass: EMAIL_PASSWORD,
-    },
-  });
-};
+}
 
 /**
  * Format harga ke Rupiah
@@ -303,62 +256,52 @@ const getOrderConfirmationTemplate = (order, user) => {
 };
 
 /**
- * Kirim email menggunakan EngageLab REST API
- * 
- * @param {string} to - Email penerima
- * @param {string} subject - Subject email
- * @param {string} htmlContent - HTML content
- * @returns {Promise<Object>} - API response
- */
-const sendEmailViaEngageLab = async (to, subject, htmlContent) => {
-  try {
-    const response = await axios.post(
-      ENGAGELAB_API_URL,
-      {
-        from: ENGAGELAB_FROM_EMAIL,
-        to: [to],
-        body: {
-          subject: subject,
-          content: {
-            html: htmlContent,
-          },
-        },
-      },
-      {
-        auth: {
-          username: ENGAGELAB_API_USER,
-          password: ENGAGELAB_API_KEY,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    return {
-      success: true,
-      data: response.data,
-    };
-  } catch (error) {
-    console.error('❌ EngageLab API Error:');
-    console.error(`   Status: ${error.response?.status}`);
-    console.error(`   Message: ${error.response?.data || error.message}`);
-    throw new Error(`EngageLab API error: ${error.response?.data?.message || error.message}`);
-  }
-};
-
-/**
- * Kirim email order confirmation
+ * Kirim email order confirmation menggunakan Resend
  * 
  * @param {Object} order - Order object dengan orderItems
  * @param {Object} user - User object
  * @returns {Promise<Object>} - Email send result
  */
 export const sendOrderConfirmationEmail = async (order, user) => {
-  if (!isEmailConfigured) {
-    console.warn('⚠️  Email tidak dikirim karena konfigurasi email belum lengkap');
-    console.warn(`   Order ${order.orderNumber} - Email: ${user.email}`);
-    return { success: false, message: 'Email service not configured' };
+  // Validasi user dan email
+  if (!user) {
+    console.error('❌ User tidak ditemukan untuk mengirim email');
+    return {
+      success: false,
+      message: 'User not found',
+      provider: 'resend'
+    };
+  }
+
+  if (!user.email) {
+    console.error('❌ Email user tidak ditemukan');
+    console.error(`   User ID: ${user.id}`);
+    console.error(`   User Name: ${user.name}`);
+    return {
+      success: false,
+      message: 'User email not found',
+      provider: 'resend'
+    };
+  }
+
+  console.log('📧 sendOrderConfirmationEmail called');
+  console.log(`   Order: ${order.orderNumber}`);
+  console.log(`   User: ${user.name} (${user.email})`);
+  console.log(`   Resend configured: ${isEmailConfigured}`);
+  console.log(`   Resend client: ${resend ? 'initialized' : 'not initialized'}`);
+
+  if (!isEmailConfigured || !resend) {
+    console.error('❌ Email tidak dikirim karena konfigurasi email belum lengkap');
+    console.error(`   Order ${order.orderNumber} - Email: ${user.email}`);
+    console.error('   RESEND_API_KEY:', RESEND_API_KEY ? 'Ada (tapi mungkin invalid)' : 'TIDAK ADA');
+    console.error('   Pastikan RESEND_API_KEY sudah ditambahkan di .env');
+    console.error('   Lihat backend/EMAIL_SETUP.md untuk panduan setup');
+    return { 
+      success: false, 
+      message: 'Email service not configured',
+      provider: 'resend',
+      error: 'RESEND_API_KEY not configured'
+    };
   }
 
   try {
@@ -396,60 +339,47 @@ Detail pesanan lengkap dapat dilihat di dashboard akun Anda.
 Terima kasih telah berbelanja di ${STORE_NAME}!
     `.trim();
 
-    // Gunakan EngageLab REST API jika dikonfigurasi
-    if (EMAIL_PROVIDER === 'engagelab') {
-      const result = await sendEmailViaEngageLab(user.email, subject, htmlContent);
-      
-      console.log('✅ Email order confirmation berhasil dikirim via EngageLab:');
-      console.log(`   To: ${user.email}`);
-      console.log(`   Order: ${order.orderNumber}`);
-      console.log(`   Response:`, result.data);
-
-      return {
-        success: true,
-        provider: 'engagelab',
-        to: user.email,
-        data: result.data,
-      };
-    }
-
-    // Gunakan SMTP (nodemailer) untuk provider lain
-    const transporter = createTransporter();
-    if (!transporter) {
-      throw new Error('Email transporter tidak dapat dibuat');
-    }
-
-    const mailOptions = {
-      from: `"${EMAIL_FROM_NAME}" <${EMAIL_FROM}>`,
-      to: user.email,
+    // Kirim email menggunakan Resend
+    const { data, error } = await resend.emails.send({
+      from: `${EMAIL_FROM_NAME} <${EMAIL_FROM}>`,
+      to: [user.email],
       subject: subject,
       html: htmlContent,
       text: textContent,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log('✅ Email order confirmation berhasil dikirim via SMTP:');
+    if (error) {
+      throw new Error(error.message || 'Failed to send email');
+    }
+
+    console.log('✅ Email order confirmation berhasil dikirim via Resend:');
     console.log(`   To: ${user.email}`);
     console.log(`   Order: ${order.orderNumber}`);
-    console.log(`   Message ID: ${info.messageId}`);
+    console.log(`   Email ID: ${data?.id || 'N/A'}`);
 
     return {
       success: true,
-      provider: 'smtp',
-      messageId: info.messageId,
+      provider: 'resend',
+      emailId: data?.id,
       to: user.email,
     };
   } catch (error) {
     console.error('❌ Error sending order confirmation email:');
     console.error(`   Order: ${order.orderNumber}`);
     console.error(`   To: ${user.email}`);
-    console.error(`   Provider: ${EMAIL_PROVIDER}`);
+    console.error(`   Provider: Resend`);
     console.error(`   Error: ${error.message}`);
+    
+    // Log error details untuk debugging
+    if (error.response) {
+      console.error(`   Status: ${error.response.status}`);
+      console.error(`   Response:`, error.response.data);
+    }
     
     return {
       success: false,
       error: error.message,
+      provider: 'resend',
     };
   }
 };
@@ -458,50 +388,49 @@ Terima kasih telah berbelanja di ${STORE_NAME}!
  * Test email configuration
  */
 export const testEmailConnection = async () => {
-  if (!isEmailConfigured) {
+  if (!isEmailConfigured || !resend) {
     return {
       success: false,
       message: 'Email service tidak dikonfigurasi',
-      provider: EMAIL_PROVIDER,
+      provider: 'resend',
+      instructions: [
+        '1. Daftar di https://resend.com',
+        '2. Buat API key di dashboard',
+        '3. Tambahkan RESEND_API_KEY di .env',
+        '4. (Optional) Verifikasi domain untuk menggunakan email custom',
+      ],
     };
   }
 
   try {
-    if (EMAIL_PROVIDER === 'engagelab') {
-      // Test EngageLab API dengan email test
-      const testEmail = process.env.TEST_EMAIL || 'test@example.com';
-      const result = await sendEmailViaEngageLab(
-        testEmail,
-        `Test Email from ${STORE_NAME}`,
-        `<h1>Test Email</h1><p>This is a test email from ${STORE_NAME} email service.</p>`
-      );
-      
-      return {
-        success: true,
-        message: 'EngageLab API berhasil dikonfigurasi',
-        provider: 'engagelab',
-        data: result.data,
-      };
-    }
-
-    // Test SMTP connection
-    const transporter = createTransporter();
-    if (!transporter) {
-      throw new Error('Email transporter tidak dapat dibuat');
-    }
-
-    await transporter.verify();
+    const testEmail = process.env.TEST_EMAIL || 'delivered@resend.dev';
     
+    // Test send email
+    const { data, error } = await resend.emails.send({
+      from: `${EMAIL_FROM_NAME} <${EMAIL_FROM}>`,
+      to: [testEmail],
+      subject: `Test Email from ${STORE_NAME}`,
+      html: `<h1>Test Email</h1><p>This is a test email from ${STORE_NAME} email service using Resend.</p>`,
+      text: `Test Email\n\nThis is a test email from ${STORE_NAME} email service using Resend.`,
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Failed to send test email');
+    }
+
     return {
       success: true,
-      message: 'SMTP email service berhasil dikonfigurasi',
-      provider: 'smtp',
+      message: 'Resend email service berhasil dikonfigurasi',
+      provider: 'resend',
+      emailId: data?.id,
+      testEmail: testEmail,
     };
   } catch (error) {
     return {
       success: false,
       message: `Email service error: ${error.message}`,
-      provider: EMAIL_PROVIDER,
+      provider: 'resend',
+      error: error.response?.data || error.message,
     };
   }
 };
@@ -510,6 +439,5 @@ export default {
   sendOrderConfirmationEmail,
   testEmailConnection,
   isEmailConfigured,
-  emailProvider: EMAIL_PROVIDER,
+  emailProvider: 'resend',
 };
-

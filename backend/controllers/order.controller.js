@@ -106,9 +106,42 @@ export const createOrder = async (req, res, next) => {
           include: {
             product: true
           }
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
         }
       }
     });
+
+    // Kirim email konfirmasi order ke user (async, tidak blocking)
+    if (orderWithItems.user && orderWithItems.user.email) {
+      try {
+        const { sendOrderConfirmationEmail } = await import('../services/email.service.js');
+        sendOrderConfirmationEmail(orderWithItems, orderWithItems.user)
+          .then((result) => {
+            if (result.success) {
+              console.log('✅ Email konfirmasi order berhasil dikirim!');
+              console.log(`   To: ${result.to}`);
+              console.log(`   Order: ${orderWithItems.orderNumber}`);
+            } else {
+              console.warn('⚠️  Email konfirmasi order gagal dikirim:');
+              console.warn(`   Error: ${result.error || result.message}`);
+            }
+          })
+          .catch((emailError) => {
+            console.error('❌ Error mengirim email konfirmasi order:');
+            console.error(`   Message: ${emailError.message}`);
+          });
+      } catch (emailError) {
+        console.error('❌ Error preparing email for order:');
+        console.error(`   Message: ${emailError.message}`);
+        // Jangan throw error, karena email adalah fitur tambahan
+      }
+    }
 
     res.status(201).json({
       success: true,
