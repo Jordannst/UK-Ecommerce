@@ -630,10 +630,10 @@ npm run seed             # Re-seed database
 ### Colors
 ```css
 /* Primary */
---unklab-blue: #1e40af;
+--starg-pink: #F8BBD0;
 
 /* Secondary */
---unklab-gold: #eab308;
+--starg-pink-dark: #F48FB1;
 
 /* Background */
 --bg-light: #f8fafc;
@@ -747,6 +747,6 @@ Jika ada pertanyaan atau masalah:
 
 **Dibuat dengan ❤️ untuk Starg Community**
 
-[⬆ Back to Top](#-unklab-campus-e-commerce-platform)
+[⬆ Back to Top](#-starg-e-commerce-platform)
 
 </div>

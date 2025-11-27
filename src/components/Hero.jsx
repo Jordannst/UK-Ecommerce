@@ -20,7 +20,7 @@ const Hero = () => {
               </h1>
               <p className="text-lg md:text-xl text-pink-100 max-w-lg">
                 Temukan produk eksklusif Starg dan produk lokal berkualitas. 
-                Dibuat dengan cinta oleh mahasiswa, untuk mahasiswa.
+                Dibuat dengan cinta untuk semua pelanggan.
               </p>
             </div>
 

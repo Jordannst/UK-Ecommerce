@@ -11,9 +11,6 @@ export default {
         'starg-pink-dark': '#F48FB1', // Pink untuk hover/darker
         'starg-pink-light': '#FFF0F5', // Lavender Blush untuk background
         'starg-pink-accent': '#FFB6C1', // Light Pink untuk accent
-        // Keep old names for backward compatibility
-        'unklab-blue': '#F8BBD0',
-        'unklab-light': '#FFF0F5',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

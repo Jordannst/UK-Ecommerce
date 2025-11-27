@@ -66,7 +66,7 @@ const Register = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <div className="w-12 h-12 bg-starg-pink rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-2xl">U</span>
+              <span className="text-white font-bold text-2xl">S</span>
             </div>
             <div className="flex flex-col items-start">
               <span className="text-2xl font-bold text-starg-pink">Starg</span>

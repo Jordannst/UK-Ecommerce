@@ -100,7 +100,7 @@ const Home = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900">Produk Lokal</h3>
-            <p className="text-gray-600">Dukung bisnis lokal dan entrepreneur mahasiswa</p>
+            <p className="text-gray-600">Dukung bisnis lokal dan entrepreneur berkualitas</p>
           </div>
 
           <div className="text-center space-y-4">
@@ -110,7 +110,7 @@ const Home = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900">Harga Terbaik</h3>
-            <p className="text-gray-600">Harga bersaing untuk mahasiswa</p>
+            <p className="text-gray-600">Harga bersaing dan terjangkau</p>
           </div>
 
           <div className="text-center space-y-4">
@@ -120,7 +120,7 @@ const Home = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-900">Pengiriman Cepat</h3>
-            <p className="text-gray-600">Pengiriman cepat di area kampus</p>
+            <p className="text-gray-600">Pengiriman cepat ke seluruh Indonesia</p>
           </div>
         </div>
       </section>

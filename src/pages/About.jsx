@@ -23,7 +23,7 @@ const About = () => {
               dengan produk-produk berkualitas dari berbagai merchant.
             </p>
             <p className="text-gray-600 text-lg leading-relaxed">
-              Kami berkomitmen untuk mendukung UKM mahasiswa dan produk lokal Sulawesi Utara, 
+              Kami berkomitmen untuk mendukung UKM dan produk lokal berkualitas, 
               sambil memberikan pengalaman berbelanja yang modern dan menyenangkan.
             </p>
           </div>
@@ -70,7 +70,7 @@ const About = () => {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-3">Community Support</h3>
             <p className="text-gray-600">
-              Mendukung UKM mahasiswa dan entrepreneur lokal untuk tumbuh dan berkembang.
+              Mendukung UKM dan entrepreneur lokal untuk tumbuh dan berkembang.
             </p>
           </div>
 
@@ -107,9 +107,9 @@ const About = () => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Visit Us</h3>
               <p className="text-gray-600">
-                Universitas Klabat<br />
-                Airmadidi, Minahasa Utara<br />
-                Sulawesi Utara 95371
+                Starg E-Commerce<br />
+                Indonesia<br />
+                Online Store
               </p>
             </div>
             <div>

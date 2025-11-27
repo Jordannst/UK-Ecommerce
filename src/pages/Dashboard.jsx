@@ -200,7 +200,7 @@ const Dashboard = () => {
             <div className="text-center">
               <div className="w-20 h-20 bg-gradient-to-br from-starg-pink to-pink-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-lg">
                 <span className="text-2xl font-bold text-white">
-                  {user?.name?.charAt(0) || 'U'}
+                  {user?.name?.charAt(0) || 'S'}
                 </span>
               </div>
               <h2 className="font-semibold text-gray-900">{user?.name || 'Pengguna'}</h2>

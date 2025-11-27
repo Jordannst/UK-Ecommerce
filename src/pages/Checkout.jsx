@@ -18,7 +18,7 @@ const Checkout = () => {
     name: '',
     phone: '',
     address: '',
-    city: 'Airmadidi',
+    city: 'Jakarta',
     notes: '',
     paymentMethod: 'Midtrans',
   });
@@ -206,7 +206,7 @@ const Checkout = () => {
               
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
                 <div className="w-12 h-12 bg-gradient-to-br from-starg-pink to-pink-400 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">{user?.name?.charAt(0) || 'U'}</span>
+                  <span className="text-white font-bold text-lg">{user?.name?.charAt(0) || 'S'}</span>
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-gray-900">{user?.name || 'Pengguna'}</p>
@@ -280,10 +280,14 @@ const Checkout = () => {
                   required
                   className="input-field"
                 >
-                  <option value="Airmadidi">Airmadidi</option>
-                  <option value="Tomohon">Tomohon</option>
-                  <option value="Manado">Manado</option>
-                  <option value="Bitung">Bitung</option>
+                  <option value="Jakarta">Jakarta</option>
+                  <option value="Surabaya">Surabaya</option>
+                  <option value="Bandung">Bandung</option>
+                  <option value="Medan">Medan</option>
+                  <option value="Semarang">Semarang</option>
+                  <option value="Makassar">Makassar</option>
+                  <option value="Palembang">Palembang</option>
+                  <option value="Denpasar">Denpasar</option>
                 </select>
               </div>
 

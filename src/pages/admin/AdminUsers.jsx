@@ -201,7 +201,7 @@ const AdminUsers = () => {
                               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
                                 user.role === 'admin' ? 'bg-purple-500' : 'bg-blue-500'
                               }`}>
-                                {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                                {user.name?.charAt(0)?.toUpperCase() || 'S'}
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">
