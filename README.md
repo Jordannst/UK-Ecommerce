@@ -45,6 +45,9 @@ Platform e-commerce modern yang dibangun dengan **React + Vite + Tailwind CSS** 
 - **bcryptjs** - Password hashing
 - **Cloudinary** - Cloud image storage & CDN
 - **Multer** - Multipart/form-data handling
+- **express-rate-limit** - Rate limiting untuk API protection
+- **sanitize-html** - Input sanitization untuk XSS protection
+- **validator** - Input validation
 
 ### DevOps & Tools
 - **Prisma Studio** - Database GUI
@@ -283,13 +286,19 @@ frontend-/
 ├── backend/                   # Backend source code
 │   ├── controllers/          # Request handlers (business logic)
 │   ├── routes/              # API route definitions
-│   ├── middleware/          # Custom middleware (auth, error handler)
+│   ├── middleware/          # Custom middleware
+│   │   ├── auth.js          # JWT authentication & authorization
+│   │   ├── errorHandler.js  # Global error handler
+│   │   ├── rateLimiter.js   # Rate limiting middleware
+│   │   ├── sanitizeInput.js # Input sanitization
+│   │   └── validateInput.js # Input validation
 │   ├── config/              # Backend config (Cloudinary, Multer)
 │   ├── utils/               # Utility functions (Prisma client, JWT)
 │   ├── prisma/              # Prisma schema & migrations
 │   │   ├── schema.prisma   # Database schema definition
 │   │   └── seed.js         # Database seeder
-│   └── uploads/             # Temporary uploads (gitignored)
+│   ├── uploads/             # Temporary uploads (gitignored)
+│   └── SECURITY.md          # Security documentation
 ├── public/                   # Static assets
 ├── .gitignore               # Git ignore rules
 ├── package.json             # Root package.json (scripts)
@@ -619,6 +628,42 @@ npm run seed             # Re-seed database
 - [ ] File format: JPG/PNG/WEBP
 - [ ] Check backend logs untuk error messages
 
+### Error: "Terlalu banyak percobaan login, coba lagi nanti" (429)
+
+**Cause:** Rate limiting aktif - maksimal 5 request login per menit per IP
+
+**Fix:**
+- Tunggu 1 menit sebelum mencoba login lagi
+- Atau gunakan IP address yang berbeda
+- Ini adalah fitur keamanan untuk mencegah brute force attack
+
+**Note:** Rate limiting hanya berlaku pada endpoint `/api/auth/login`
+
+### Error: "Validasi gagal" (400)
+
+**Cause:** Input tidak memenuhi validasi requirements
+
+**Common Issues:**
+- Email format tidak valid
+- Password kurang dari 6 karakter
+- Name hanya berisi spasi atau kurang dari 2 karakter
+
+**Fix:**
+- Pastikan email format benar (contoh: `user@example.com`)
+- Password minimal 6 karakter
+- Name minimal 2 karakter dan tidak hanya spasi
+- Check response error untuk detail validasi yang gagal
+
+### Error: "Token tidak valid" (401)
+
+**Cause:** JWT token invalid, expired, atau tidak ada
+
+**Fix:**
+1. Pastikan token dikirim di header: `Authorization: Bearer <token>`
+2. Jika token expired, login ulang untuk mendapatkan token baru
+3. Pastikan token tidak diubah atau dimodifikasi
+4. Check apakah JWT_SECRET di `.env` tidak berubah
+
 ---
 
 📖 **Lebih banyak troubleshooting?** → Lihat `TROUBLESHOOTING.md`
@@ -651,14 +696,34 @@ npm run seed             # Re-seed database
 
 ## 🔒 Security Features
 
-- ✅ **JWT Authentication**: Secure token-based auth
-- ✅ **Password Hashing**: bcryptjs with salt rounds
-- ✅ **Protected Routes**: Middleware validation
-- ✅ **Role-Based Access**: Admin-only endpoints
-- ✅ **CORS Configuration**: Allowed origins only
+### Authentication & Authorization
+- ✅ **JWT Authentication**: Secure token-based auth dengan issuer & audience
+- ✅ **Password Hashing**: bcryptjs with salt rounds (10 rounds)
+- ✅ **Protected Routes**: Middleware validation pada semua protected endpoints
+- ✅ **Role-Based Access**: Admin-only endpoints dengan middleware `requireAdmin`
+- ✅ **Token Expiry**: Auto logout saat token expired
+
+### API Protection
+- ✅ **Rate Limiting**: Login endpoint dibatasi 5 request per menit per IP
+- ✅ **CORS Configuration**: Allowed origins only dengan credentials support
+- ✅ **Input Sanitization**: Sanitasi HTML tags dari input user (name, phone, address)
+- ✅ **Input Validation**: Validasi email format, password strength, dan name requirements
+- ✅ **Error Exposure Protection**: Semua error Prisma/database disembunyikan dari client
+
+### Data Protection
 - ✅ **SQL Injection Protection**: Prisma ORM parameterized queries
-- ✅ **Environment Variables**: Sensitive data not committed
-- ✅ **Auto Logout**: Token expiry handling
+- ✅ **XSS Protection**: Input sanitization dengan sanitize-html
+- ✅ **Environment Variables**: Sensitive data tidak di-commit ke Git
+- ✅ **JWT Hardening**: Issuer (`starg-ecommerce`) dan Audience (`starg-users`) validation
+
+### Security Middleware
+- ✅ **Rate Limiter**: `loginRateLimiter` untuk login endpoint
+- ✅ **Input Sanitizer**: `sanitizeInput` untuk remove HTML/scripts
+- ✅ **Input Validator**: `validateRegister`, `validateLogin`, `validateUpdateProfile`
+- ✅ **Auth Middleware**: `authenticate` dengan JWT verification
+- ✅ **Error Handler**: Global error handler yang hide internal errors
+
+**📖 Dokumentasi Lengkap**: Lihat `backend/SECURITY.md` untuk detail implementasi keamanan.
 
 ---
 
@@ -678,6 +743,7 @@ npm run seed             # Re-seed database
 - 📖 **Cara Menjalankan**: `CARA_RUN.md` - Panduan lengkap cara setup dan run aplikasi
 - 🔧 **Troubleshooting**: `TROUBLESHOOTING.md` - Panduan troubleshooting masalah umum
 - 🗄️ **PostgreSQL Installation**: `INSTALL_POSTGRESQL_WINDOWS.md` - Panduan install PostgreSQL di Windows
+- 🔒 **Security Guide**: `backend/SECURITY.md` - Dokumentasi lengkap implementasi keamanan
 - 🔧 **API Documentation**: Lihat section API Endpoints di atas
 - 🎨 **Component Guide**: Check `src/components/` untuk examples
 
@@ -731,6 +797,9 @@ Jika ada pertanyaan atau masalah:
 - ✅ Authentication & Authorization
 - ✅ Cloudinary Integration
 - ✅ Order Management
+- ✅ **Security Hardening**: Rate limiting, input sanitization, validation, JWT hardening
+- ✅ **Error Protection**: Hide internal errors from client
+- ✅ **Production-Ready Security**: Comprehensive security middleware stack
 
 ### Future Enhancements
 - [ ] Email notifications (order confirmation)
