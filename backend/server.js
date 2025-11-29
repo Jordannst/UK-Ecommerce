@@ -14,6 +14,7 @@ import wishlistRoutes from './routes/wishlist.routes.js';
 import userRoutes from './routes/user.routes.js';
 import chatbotRoutes from './routes/chatbot.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import emailRoutes from './routes/email.routes.js';
 
 // Import middleware
 import errorHandler from './middleware/errorHandler.js';
@@ -77,6 +78,9 @@ app.use('/api/auth', (req, res, next) => {
   console.log(`🔐 Auth route accessed: ${req.method} ${req.originalUrl}`);
   next();
 }, authRoutes);
+
+// Email routes (for testing)
+app.use('/api/email', emailRoutes);
 
 app.use('/api/products', (req, res, next) => {
   console.log(`📦 Products route: ${req.method} ${req.originalUrl}`);

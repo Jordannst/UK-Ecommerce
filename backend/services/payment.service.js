@@ -311,6 +311,7 @@ export const handlePaymentNotification = async (notification) => {
 
   // 6. Jika payment berhasil (paid), kirim email konfirmasi
   if (paymentStatus === 'paid' && order.paymentStatus !== 'paid') {
+    console.log(`📧 Preparing to send confirmation email for order: ${order.orderNumber}`);
     try {
       // Get user data
       const user = await prisma.user.findUnique({
@@ -322,30 +323,71 @@ export const handlePaymentNotification = async (notification) => {
         },
       });
 
-      if (user) {
-        // Get order dengan items untuk email
-        const orderForEmail = await prisma.order.findUnique({
-          where: { id: order.id },
-          include: {
-            orderItems: {
-              include: {
-                product: true,
-              },
+      if (!user) {
+        console.error('⚠️  User tidak ditemukan untuk order:', order.orderNumber);
+        return updatedOrder;
+      }
+
+      console.log(`📧 User found: ${user.name} (${user.email})`);
+
+      // Get order dengan items untuk email
+      const orderForEmail = await prisma.order.findUnique({
+        where: { id: order.id },
+        include: {
+          orderItems: {
+            include: {
+              product: true,
             },
           },
-        });
+        },
+      });
 
-        // Kirim email (async, tidak blocking)
-        const { sendOrderConfirmationEmail } = await import('./email.service.js');
-        sendOrderConfirmationEmail(orderForEmail, user).catch((emailError) => {
-          console.error('⚠️  Gagal mengirim email konfirmasi:', emailError.message);
+      if (!orderForEmail) {
+        console.error('⚠️  Order tidak ditemukan untuk email:', order.id);
+        return updatedOrder;
+      }
+
+      console.log(`📧 Order items count: ${orderForEmail.orderItems?.length || 0}`);
+
+      // Kirim email (async, tidak blocking)
+      const { sendOrderConfirmationEmail } = await import('./email.service.js');
+      
+      // Gunakan await untuk memastikan email dikirim, tapi catch error
+      sendOrderConfirmationEmail(orderForEmail, user)
+        .then((result) => {
+          if (result.success) {
+            console.log('✅ Email konfirmasi berhasil dikirim:', {
+              order: order.orderNumber,
+              to: user.email,
+              provider: result.provider,
+            });
+          } else {
+            console.error('❌ Email konfirmasi gagal dikirim:', {
+              order: order.orderNumber,
+              to: user.email,
+              error: result.message || result.error,
+            });
+          }
+        })
+        .catch((emailError) => {
+          console.error('❌ Error sending confirmation email:', {
+            order: order.orderNumber,
+            to: user.email,
+            error: emailError.message,
+            stack: emailError.stack,
+          });
           // Jangan throw error, karena email adalah fitur tambahan
         });
-      }
     } catch (emailError) {
-      console.error('⚠️  Error preparing email:', emailError.message);
+      console.error('❌ Error preparing email:', {
+        order: order.orderNumber,
+        error: emailError.message,
+        stack: emailError.stack,
+      });
       // Jangan throw error, karena email adalah fitur tambahan
     }
+  } else {
+    console.log(`ℹ️  Email tidak dikirim: paymentStatus=${paymentStatus}, previousPaymentStatus=${order.paymentStatus}`);
   }
 
   console.log(`✅ Order ${order_id} updated: status=${orderStatus}, payment=${paymentStatus}`);
@@ -370,8 +412,17 @@ export const getTransactionStatus = async (orderId) => {
     });
     return status;
   } catch (error) {
+    // Handle 404 - Transaction doesn't exist (biasanya karena transaksi belum dibuat atau sudah expired)
+    if (error.httpStatusCode === '404' || error.ApiResponse?.status_code === '404') {
+      console.warn(`⚠️  Transaction not found in Midtrans for order: ${orderId}`);
+      console.warn(`   This usually means the transaction hasn't been created yet or has expired.`);
+      return null; // Return null instead of throwing error
+    }
+    
+    // Handle other errors
     console.error('❌ Error getting transaction status:', error);
     console.error('   Order ID:', orderId);
+    console.error('   HTTP Status:', error.httpStatusCode);
     console.error('   Error details:', error.ApiResponse || error.message);
     throw new Error(`Gagal mendapatkan status transaksi: ${error.message}`);
   }

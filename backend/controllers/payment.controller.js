@@ -127,10 +127,19 @@ export const handleNotification = async (req, res, next) => {
   try {
     const notification = req.body;
 
-    console.log('📥 Received Midtrans notification:', JSON.stringify(notification, null, 2));
+    console.log('📥 Received Midtrans notification:');
+    console.log('   Transaction Status:', notification.transaction_status);
+    console.log('   Order ID:', notification.order_id);
+    console.log('   Payment Type:', notification.payment_type);
+    console.log('   Full notification:', JSON.stringify(notification, null, 2));
 
     // Handle notification
     const updatedOrder = await handlePaymentNotification(notification);
+
+    console.log('✅ Notification processed successfully:');
+    console.log('   Order:', updatedOrder.orderNumber);
+    console.log('   Status:', updatedOrder.status);
+    console.log('   Payment Status:', updatedOrder.paymentStatus);
 
     // Kirim response 200 OK ke Midtrans
     // Midtrans akan retry jika tidak menerima 200
@@ -142,7 +151,9 @@ export const handleNotification = async (req, res, next) => {
       paymentStatus: updatedOrder.paymentStatus,
     });
   } catch (error) {
-    console.error('❌ Error in handleNotification:', error);
+    console.error('❌ Error in handleNotification:');
+    console.error('   Message:', error.message);
+    console.error('   Stack:', error.stack);
     
     // Tetap kirim 200 untuk menghindari retry yang tidak perlu
     // tapi log error untuk investigasi
@@ -187,11 +198,15 @@ export const checkPaymentStatus = async (req, res, next) => {
         console.log(`🔍 Checking Midtrans status for order: ${order.orderNumber}`);
         midtransStatus = await getTransactionStatus(order.orderNumber);
         
-        console.log(`📥 Midtrans status response:`, {
-          transaction_status: midtransStatus?.transaction_status,
-          fraud_status: midtransStatus?.fraud_status,
-          payment_type: midtransStatus?.payment_type,
-        });
+        if (midtransStatus) {
+          console.log(`📥 Midtrans status response:`, {
+            transaction_status: midtransStatus?.transaction_status,
+            fraud_status: midtransStatus?.fraud_status,
+            payment_type: midtransStatus?.payment_type,
+          });
+        } else {
+          console.log(`ℹ️  Transaction not found in Midtrans (may not be created yet or expired)`);
+        }
         
         // Update order jika status dari Midtrans berbeda
         if (midtransStatus && midtransStatus.transaction_status) {
@@ -206,6 +221,8 @@ export const checkPaymentStatus = async (req, res, next) => {
           
           // Update jika status berubah
           if (order.status !== orderStatus || order.paymentStatus !== paymentStatus) {
+            const previousPaymentStatus = order.paymentStatus;
+            
             updatedOrder = await prisma.order.update({
               where: { id: order.id },
               data: {
@@ -220,6 +237,66 @@ export const checkPaymentStatus = async (req, res, next) => {
             });
             
             console.log(`✅ Order ${order.orderNumber} status updated: ${order.status} → ${orderStatus}, ${order.paymentStatus} → ${paymentStatus}`);
+            
+            // Jika payment status berubah menjadi paid, kirim email
+            if (paymentStatus === 'paid' && previousPaymentStatus !== 'paid') {
+              console.log(`📧 Payment completed, sending confirmation email for order: ${order.orderNumber}`);
+              try {
+                // Get user data
+                const user = await prisma.user.findUnique({
+                  where: { id: order.userId },
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                });
+
+                if (user) {
+                  // Get order dengan items untuk email
+                  const orderForEmail = await prisma.order.findUnique({
+                    where: { id: order.id },
+                    include: {
+                      orderItems: {
+                        include: {
+                          product: true,
+                        },
+                      },
+                    },
+                  });
+
+                  if (orderForEmail) {
+                    // Kirim email (async, tidak blocking)
+                    const { sendOrderConfirmationEmail } = await import('../services/email.service.js');
+                    sendOrderConfirmationEmail(orderForEmail, user)
+                      .then((result) => {
+                        if (result.success) {
+                          console.log('✅ Email konfirmasi berhasil dikirim:', {
+                            order: order.orderNumber,
+                            to: user.email,
+                            provider: result.provider,
+                          });
+                        } else {
+                          console.error('❌ Email konfirmasi gagal dikirim:', {
+                            order: order.orderNumber,
+                            to: user.email,
+                            error: result.message || result.error,
+                          });
+                        }
+                      })
+                      .catch((emailError) => {
+                        console.error('❌ Error sending confirmation email:', {
+                          order: order.orderNumber,
+                          to: user.email,
+                          error: emailError.message,
+                        });
+                      });
+                  }
+                }
+              } catch (emailError) {
+                console.error('❌ Error preparing email:', emailError.message);
+              }
+            }
           } else {
             console.log(`ℹ️  Order ${order.orderNumber} status unchanged`);
           }

@@ -14,7 +14,7 @@ const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
 const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || '587', 10);
 const EMAIL_USER = process.env.EMAIL_USER || '';
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD || '';
-const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER || 'noreply@starg.com';
+const EMAIL_FROM = process.env.EMAIL_FROM || EMAIL_USER || 'dionleonn01@gmail.com';
 const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || 'Starg';
 const STORE_NAME = process.env.STORE_NAME || 'Starg';
 
@@ -355,9 +355,26 @@ const sendEmailViaEngageLab = async (to, subject, htmlContent) => {
  * @returns {Promise<Object>} - Email send result
  */
 export const sendOrderConfirmationEmail = async (order, user) => {
+  console.log('📧 sendOrderConfirmationEmail called:', {
+    orderNumber: order?.orderNumber,
+    orderId: order?.id,
+    userEmail: user?.email,
+    hasOrderItems: !!order?.orderItems,
+    orderItemsCount: order?.orderItems?.length || 0,
+  });
+
   if (!isEmailConfigured) {
     console.warn('⚠️  Email tidak dikirim karena konfigurasi email belum lengkap');
-    console.warn(`   Order ${order.orderNumber} - Email: ${user.email}`);
+    console.warn(`   Order ${order?.orderNumber} - Email: ${user?.email}`);
+    console.warn(`   EMAIL_PROVIDER: ${EMAIL_PROVIDER}`);
+    if (EMAIL_PROVIDER === 'engagelab') {
+      console.warn(`   ENGAGELAB_API_USER: ${ENGAGELAB_API_USER ? 'SET' : 'NOT SET'}`);
+      console.warn(`   ENGAGELAB_API_KEY: ${ENGAGELAB_API_KEY ? 'SET' : 'NOT SET'}`);
+      console.warn(`   ENGAGELAB_FROM_EMAIL: ${ENGAGELAB_FROM_EMAIL || 'NOT SET'}`);
+    } else {
+      console.warn(`   EMAIL_USER: ${EMAIL_USER ? 'SET' : 'NOT SET'}`);
+      console.warn(`   EMAIL_PASSWORD: ${EMAIL_PASSWORD ? 'SET' : 'NOT SET'}`);
+    }
     return { success: false, message: 'Email service not configured' };
   }
 
@@ -365,6 +382,7 @@ export const sendOrderConfirmationEmail = async (order, user) => {
     // Pastikan order memiliki orderItems
     let orderWithItems = order;
     if (!order.orderItems || order.orderItems.length === 0) {
+      console.log('📧 Order items not found, fetching from database...');
       const { default: prisma } = await import('../utils/prisma.js');
       orderWithItems = await prisma.order.findUnique({
         where: { id: order.id },
@@ -376,6 +394,18 @@ export const sendOrderConfirmationEmail = async (order, user) => {
           },
         },
       });
+      
+      if (!orderWithItems) {
+        throw new Error(`Order dengan ID ${order.id} tidak ditemukan`);
+      }
+      
+      if (!orderWithItems.orderItems || orderWithItems.orderItems.length === 0) {
+        throw new Error(`Order ${order.orderNumber} tidak memiliki items`);
+      }
+      
+      console.log(`📧 Fetched ${orderWithItems.orderItems.length} order items from database`);
+    } else {
+      console.log(`📧 Using provided order items (${order.orderItems.length} items)`);
     }
 
     const subject = `🎉 Pesanan Berhasil - ${order.orderNumber} | ${STORE_NAME}`;
